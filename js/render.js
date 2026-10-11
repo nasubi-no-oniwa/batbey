@@ -221,6 +221,8 @@ window.BB = window.BB || {};
         const sl = 2 * LOOK[st].depth * Math.min(r, 1), ang = Math.atan(sl) * 0.8, dirA = Math.atan2(f.y, f.x);
         const wob = f.wob || 0, wt = time * (6 + 10 * wob);
         R.tilt.rotation.set(Math.sin(dirA) * ang + Math.sin(wt) * wob * 0.35, 0, -Math.cos(dirA) * ang + Math.cos(wt) * wob * 0.35);
+        // バースト寸前：ガタガタふるえる
+        if (f.danger) { const j = 0.025 * f.danger; R.tilt.rotation.x += (Math.random() - 0.5) * j; R.tilt.rotation.z += (Math.random() - 0.5) * j; R.root.position.y += (Math.random() - 0.5) * 0.004 * f.danger; }
         const fa = Math.atan(sl); R.sring.rotation.set(Math.sin(dirA) * fa, 0, -Math.cos(dirA) * fa); R.sbg.rotation.copy(R.sring.rotation);
         R.sring.position.y = gy - R.y + 0.012; R.sbg.position.y = gy - R.y + 0.01;
         const sp = Math.abs(f.w);
@@ -283,6 +285,20 @@ window.BB = window.BB || {};
       const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
       const p = new THREE.Points(g, new THREE.PointsMaterial({ map: this.sparkTex, size: 0.035, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, color: '#ff9be8' }));
       this.world.add(p); this.sparks.push({ p, vel, t: 0, life: 0.25 });
+    }
+    // 会心の輪：ぶつかる所に、ちぢんでいく輪（内側の輪と重なったらタップ）
+    critRing(on, x, z, k) {
+      if (!this.cr) {
+        const g = new THREE.Group(), geo = new THREE.RingGeometry(0.9, 1, 64).rotateX(-Math.PI / 2);
+        const m1 = new THREE.MeshBasicMaterial({ color: '#ffd23f', transparent: true, opacity: 0.95, depthWrite: false, depthTest: false, side: THREE.DoubleSide });
+        const m2 = new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.55, depthWrite: false, depthTest: false, side: THREE.DoubleSide });
+        const outer = new THREE.Mesh(geo, m1), inner = new THREE.Mesh(geo, m2); outer.renderOrder = inner.renderOrder = 9;
+        g.add(outer, inner); this.world.add(g); this.cr = { g, outer, inner };
+      }
+      const c = this.cr; c.g.visible = !!on; if (!on) return;
+      const y = surfY(this.stage || 'std', Math.hypot(x, z)) + 0.03;
+      c.g.position.set(x, y, z); c.inner.scale.setScalar(0.11); c.outer.scale.setScalar(0.11 + 0.42 * Math.max(0, Math.min(1, k)));
+      c.outer.material.opacity = 0.5 + 0.5 * (1 - k); c.outer.material.color.set(k < 0.33 ? '#ff5a2a' : '#ffd23f');
     }
     // 3D の点 → 画面の位置（px）
     toScreen(x, y, z) {

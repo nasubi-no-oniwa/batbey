@@ -72,8 +72,8 @@ BB.rand = BB.rand || (() => Math.random());   // 試合の計算で使う乱数�
   // 軸の型：どう動くか
   //   move：床をけって動く力  orbitR/orbitV：まわる半径と速さ  dash：ときどき相手へつっこむ（間かく・速さ）  life：ぶつからなければ回る秒数
   const AXP = {
-    atk: { move: 4.2, orbitR: 0.72, orbitV: 1.85, dash: [0.7, 1.5], dashV: 2.6, fric: 0.12, life: 55 },
-    bal: { move: 2.6, orbitR: 0.36, orbitV: 1.0, dash: [1.4, 2.6], dashV: 1.9, fric: 0.3, life: 52 },
+    atk: { move: 4.2, orbitR: 0.62, orbitV: 1.85, dash: [0.5, 1.1], dashV: 2.6, fric: 0.12, life: 55 },
+    bal: { move: 2.6, orbitR: 0.3, orbitV: 1.0, dash: [1.0, 1.9], dashV: 1.9, fric: 0.3, life: 52 },
     sta: { move: 1.0, orbitR: 0, orbitV: 0, dash: null, dashV: 0, fric: 0.9, life: 51 }
   };
   BB.AXP = AXP;

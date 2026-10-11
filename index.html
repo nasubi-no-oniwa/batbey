@@ -29,7 +29,7 @@
     <div class="row3"><button class="btn lv" data-level="easy">よわい</button><button class="btn lv" data-level="normal">ふつう</button><button class="btn lv" data-level="hard">つよい</button></div>
     <button class="btn hot" id="btn-online">あいことばで対戦</button>
     <div class="row2"><button class="btn sub" id="btn-find">IDでよぶ</button><button class="btn sub" id="btn-gal">みんなのコマ</button></div>
-    <div class="row2"><button class="btn sub" id="btn-howto">あそびかた</button><button class="btn sub" id="btn-q">画質：<b id="q-name">おまかせ</b></button></div>
+    <div class="row2"><button class="btn sub" id="btn-howto">あそびかた</button><button class="btn sub" id="btn-q">画質：<b id="q-name">おまかせ</b></button><button class="btn sub" id="btn-snd">音：<b id="snd-name">あり</b></button></div>
     <a class="home-link" href="https://nasubi-no-oniwa.github.io/">🍆 なすびのお庭へ</a>
   </div>
 </section>
@@ -86,9 +86,11 @@
   <div class="vignette" id="vig"></div>
   <div class="fx-layer" id="fx-layer"></div>
   <div class="combo" id="combo"></div>
+  <div class="call" id="call"></div>
+  <div class="replay-tag" id="replay-tag" hidden>REPLAY</div>
   <div class="final-tag" id="final-tag">スピン勝負！</div>
   <div class="big" id="big"></div>
-  <div class="tap-hint" id="tap-hint" hidden>画面をタップで応援！ スキルがたまる</div>
+  <div class="tap-hint" id="tap-hint" hidden>タップで応援（スキルがたまる）／黄色い輪が重なる瞬間にタップで<b>会心</b>！</div>
   <div class="aim-tip" id="aim-tip" hidden>左右にドラッグで、打ち出す向き</div>
   <div class="watch-tag" id="watch-tag" hidden>観戦中</div>
   <div class="launch" id="launch" hidden>
@@ -204,6 +206,8 @@
       <li><b>回る向き</b>：同じ向きどうしは、はじきあう。逆向きどうしは、回転をうばいあう。</li>
       <li><b>回し方</b>：左右にドラッグで向きを決めて、「3・2・1・まわせ！」に合わせて長押し→離す。ゲージは<b>90%くらい</b>がいちばん安定。満タンをこえると、ぐらつきます。早く離すとフライング、ぴったりだとボーナス。</li>
       <li><b>スキル</b>：ぶつかるとゲージがたまり、満タンでボタンを押すと発動（1回戦に1回）。</li>
+      <li><b>会心の一撃</b>：コマがぶつかりそうになると、黄色い輪がちぢんでいきます。内側の輪と重なる瞬間（オレンジ色）にタップすると「会心！」で大きくはじき、バーストに近づけます。早すぎるとスキができます。連打では出ません。</li>
+      <li><b>バースト寸前</b>：ロックがゆるむと「ピキッ」と鳴って、コマがガタガタふるえます。</li>
       <li><b>応援</b>：バトル中に画面をタップすると、スキルのゲージが少したまります（1回戦にためられる量には上限あり）。</li>
       <li><b>スピン勝負</b>：ふたりとも回転が3割を切ると、残りの回転が％で出ます。最後まで目がはなせない！</li>
       <li><b>決着</b>：バースト（ばらばらに外れる）2点、場外2点、先に止まる1点。<b>3点先取</b>で勝ち。</li>

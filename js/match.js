@@ -7,7 +7,7 @@ window.BB = window.BB || {};
 (function () {
   const KEYS = ['std', 'deep', 'flat'];
   const WIN = 3;
-  BB.MATCH = { T_VOTE: 12000, T_INTRO: 1600, T_AIM: 2600, T_COUNT: 3200, T_END: 2600, WIN, KEYS };
+  BB.MATCH = { T_VOTE: 12000, T_INTRO: 1600, T_AIM: 2600, T_COUNT: 3200, T_END: 2600, T_REPLAY: 3800, WIN, KEYS };
   // 離したタイミング → 種類
   BB.judge = (releaseAt, goAt) => {
     const d = releaseAt - goAt;
@@ -36,12 +36,15 @@ window.BB = window.BB || {};
       this.cheerT[slot] = Math.max(this.cheerT[slot], t - 1000) + k * 1000 / 6;
       this.battle.cheer(slot, k);
     }
+    // 会心のタップ（tTap：押した人に見えていた試合の時刻。なければ今）
+    crit(slot, tTap) { if (this.phase === 'battle' && this.battle) this.battle.crit(slot, tTap == null ? null : Math.min(this.battle.t, +tTap)); }
     // ヒットストップ・スロー（試合の計算そのものを止める／ゆっくりにする → 全員が同じものを見る）
     hitFx(e) {
       if (e.type === 'hit' && e.tier >= 3 && this.hsCool <= 0) {
         this.freeze = Math.max(this.freeze, e.tier >= 4 ? 0.11 : 0.06); this.hsCool = 0.5;
         if (e.tier >= 4) { this.slowT = Math.max(this.slowT, 0.7); this.slowK = 0.3; }
       }
+      if (e.type === 'crit') { this.freeze = Math.max(this.freeze, 0.13); this.slowT = Math.max(this.slowT, 0.5); this.slowK = 0.3; }
       if (e.type === 'burst' || e.type === 'out') { this.freeze = 0.12; this.slowT = 1.2; this.slowK = 0.25; }
     }
     pickStage() {
@@ -87,7 +90,7 @@ window.BB = window.BB || {};
             if (b.over) {
               const w = b.winner, pts = b.why === 'stop' ? 1 : b.why === 'draw' ? 0 : 2;
               if (w >= 0) this.score[w] += pts;
-              this.result = { winner: w, why: b.why, pts }; this.phase = 'end'; this.until = now + BB.MATCH.T_END;
+              this.result = { winner: w, why: b.why, pts }; this.phase = 'end'; this.until = now + BB.MATCH.T_END + (b.why === 'burst' || b.why === 'out' ? BB.MATCH.T_REPLAY : 0);
               this.emit({ type: 'roundEnd', winner: w, why: b.why, pts, score: this.score.slice() });
             }
           }

@@ -224,3 +224,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .tap-ring { position: absolute; width: 56px; height: 56px; margin: -28px 0 0 -28px; border: 3px solid var(--cyan); border-radius: 50%; animation: tapr .45s ease-out forwards; }
 @keyframes tapr { from { transform: scale(.3); opacity: 1; } to { transform: scale(1.4); opacity: 0; } }
 .tap-plus { position: absolute; transform: translate(-50%, -50%); font-weight: 900; color: var(--cyan); font-size: 15px; text-shadow: 0 2px 0 #000; animation: pop .6s ease-out forwards; }
+
+.call { position: fixed; left: 50%; top: calc(64px + env(safe-area-inset-top, 0px)); transform: translate(-50%, -8px) scale(.9); white-space: nowrap; font-weight: 900; font-size: min(20px, 4.6vw); color: #fff; background: rgba(11,13,20,.82); border: 2px solid #ffd23f; border-radius: 999px; padding: 4px 16px; opacity: 0; transition: .18s; pointer-events: none !important; z-index: 6; }
+.call.show { opacity: 1; transform: translate(-50%, 0) scale(1); } .call.red { border-color: #ff5d73; } .call.cyan { border-color: var(--cyan); }
+.replay-tag { position: fixed; left: 14px; top: calc(70px + env(safe-area-inset-top, 0px)); font-family: var(--display); font-size: 26px; color: #fff; background: #e11d48; padding: 2px 14px; border-radius: 6px; letter-spacing: .1em; pointer-events: none !important; animation: rp 1s infinite; }
+.replay-tag[hidden] { display: none; } @keyframes rp { 50% { opacity: .55; } }
+.pop.crit { font-size: 64px; color: #fff36b; text-shadow: 0 4px 0 #000, 0 0 30px rgba(255,200,40,1); }
+.pop.miss { font-size: 30px; color: #ff6b7a; } .pop.crk { font-size: 22px; color: #ffb4b4; text-shadow: 0 2px 0 #000, 0 0 10px rgba(255,40,40,.9); }

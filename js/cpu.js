@@ -5,9 +5,9 @@
 window.BB = window.BB || {};
 (function () {
   const LV = {
-    easy:   { p: [0.5, 0.85], early: 0.15, perfect: 0.05, late: 0.35, think: 1.6, smart: 0.2 },
-    normal: { p: [0.72, 0.97], early: 0.07, perfect: 0.25, late: 0.2, think: 0.9, smart: 0.6 },
-    hard:   { p: [0.86, 0.99], early: 0.02, perfect: 0.6, late: 0.06, think: 0.35, smart: 1 }
+    easy:   { p: [0.5, 0.85], early: 0.15, perfect: 0.05, late: 0.35, think: 1.6, smart: 0.2, crit: 0.12 },
+    normal: { p: [0.72, 0.97], early: 0.07, perfect: 0.25, late: 0.2, think: 0.9, smart: 0.6, crit: 0.25 },
+    hard:   { p: [0.86, 0.99], early: 0.02, perfect: 0.6, late: 0.06, think: 0.35, smart: 1, crit: 0.4 }
   };
   BB.cpuLaunch = function (level) {
     const L = LV[level] || LV.normal, r = BB.rand();
@@ -18,6 +18,12 @@ window.BB = window.BB || {};
     constructor(level, i) { this.L = LV[level] || LV.normal; this.i = i; this.t = 0.5; }
     update(b, dt) {
       const f = b.f[this.i], o = b.f[1 - this.i];
+      // 会心をねらう（ぶつかる直前にタップ）
+      if (b.near && f.state === 'spin') {
+        if (!this.tried) { this.tried = true; const r = BB.rand(); this.plan = r < this.L.crit ? 'hit' : r < this.L.crit + 0.15 ? 'early' : 'none'; }
+        if (this.plan === 'hit' && b.near.tc < 0.1) { b.crit(this.i); this.plan = 'none'; }
+        if (this.plan === 'early' && b.near.tc < 0.55) { b.crit(this.i); this.plan = 'none'; }
+      } else this.tried = false;
       if (f.used || f.gauge < 1 || f.state !== 'spin') return null;
       this.t -= dt; if (this.t > 0) return null; this.t = this.L.think * (0.6 + BB.rand() * 0.8);
       if (BB.rand() > this.L.smart) return { skill: BB.rand() < 0.5 };   // 考えずに使う

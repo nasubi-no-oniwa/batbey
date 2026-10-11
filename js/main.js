@@ -11,10 +11,10 @@
   const SK = BB.T.SKILLS;
 
   // ---------- 音（すべて合成） ----------
-  let ac = null, bus = null, nbuf = null;
+  let ac = null, bus = null, nbuf = null, master = null, muted = (() => { try { return localStorage.getItem('bb_mute') === '1'; } catch (e) { return false; } })();
   const A = () => {
     try {
-      if (!ac) { ac = new (window.AudioContext || window.webkitAudioContext)(); const c = ac.createDynamicsCompressor(); c.threshold.value = -16; c.knee.value = 8; c.ratio.value = 5; c.attack.value = 0.002; c.release.value = 0.15; c.connect(ac.destination); bus = c;
+      if (!ac) { ac = new (window.AudioContext || window.webkitAudioContext)(); const c = ac.createDynamicsCompressor(); c.threshold.value = -16; c.knee.value = 8; c.ratio.value = 5; c.attack.value = 0.002; c.release.value = 0.15; const mg = ac.createGain(); mg.gain.value = muted ? 0 : 1; c.connect(mg); mg.connect(ac.destination); bus = c; master = mg;
         nbuf = ac.createBuffer(1, ac.sampleRate * 1.5, ac.sampleRate); const d = nbuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
       if (ac.state === 'suspended') ac.resume();
     } catch (e) {} return ac;
@@ -45,8 +45,36 @@
     pick: () => tone(880, 0.06, 'square', 0.04), land: () => { noise(0.15, 0.25, 600); tone(150, 0.15, 'sine', 0.1, 0, 60); },
     heart: () => { tone(62, 0.14, 'sine', 0.3, 0, 42); tone(58, 0.14, 'sine', 0.22, 0.2, 40); },
     final: () => { tone(330, 0.5, 'square', 0.05, 0, 165); tone(220, 0.7, 'sawtooth', 0.04, 0.12, 110); },
-    tap: () => tone(1500 + Math.random() * 300, 0.04, 'triangle', 0.025)
+    tap: () => tone(1500 + Math.random() * 300, 0.04, 'triangle', 0.025),
+    crit: () => { boom(0.6, 0.35); metal(1320, 1.1, 0.13); metal(660, 1.3, 0.1, 0.01); noise(0.25, 0.4, 5000, true); tone(400, 0.35, 'sawtooth', 0.05, 0, 2400); },
+    miss: () => { tone(180, 0.25, 'square', 0.05, 0, 90); },
+    crack: lv => { metal(3200 - lv * 400, 0.18, 0.05 + lv * 0.02); noise(0.05, 0.2, 7000, true); },
+    crowd: v => { noise(0.9, 0.08 * v, 1600); noise(0.7, 0.05 * v, 2600, false, 0.1); }
+
   };
+  // ---------- 試合中の音楽（その場で作る） ----------
+  const bgm = (() => {
+    const BPM = 150, ST = 60 / BPM / 4, PROG = [45, 41, 43, 40], MEL = [69, null, 72, null, 76, null, 74, 72, 71, null, 72, null, 74, null, 76, null];
+    let on = false, md = 'battle', step = 0, nextT = 0, tm = 0;
+    const f = m => 440 * Math.pow(2, (m - 69) / 12);
+    function play(t, s) {
+      const bar = Math.floor(s / 16), k = s % 16, root = PROG[bar % 4], fin = md === 'final';
+      const a = A(); if (!a) return; const d = t - a.currentTime;
+      if (k % 4 === 0) tone(150, 0.14, 'sine', fin ? 0.16 : 0.12, d, 45);
+      if (k % 8 === 4 && !fin) noise(0.12, 0.09, 5500, true, d);
+      if (k % 2 === 0) noise(0.03, fin ? 0.05 : 0.035, 9000, true, d);
+      if (k % 2 === 0) tone(f(root - 12 + (k % 8 === 6 ? 12 : 0)), ST * 1.6, 'sawtooth', 0.035, d, f(root - 12) * 0.999);
+      if (fin) { if (k % 2 === 1) tone(f(root + 24 + [0, 3, 7, 12][(k >> 1) % 4]), ST * 0.8, 'square', 0.012, d); }
+      else if (bar % 2 === 1 && MEL[k]) tone(f(MEL[k] + (bar % 4 === 3 ? 2 : 0)), ST * 1.8, 'square', 0.018, d);
+    }
+    function tick() { const a = A(); if (!a || !on) return; while (nextT < a.currentTime + 0.15) { play(nextT, step++); nextT += ST; } }
+    return {
+      start() { const a = A(); if (!a || on) return; on = true; md = 'battle'; step = 0; nextT = a.currentTime + 0.05; clearInterval(tm); tm = setInterval(tick, 40); },
+      mode(m) { md = m; }, stop() { on = false; clearInterval(tm); }
+    };
+  })();
+  $('btn-snd').onclick = () => { muted = !muted; try { localStorage.setItem('bb_mute', muted ? '1' : '0'); } catch (e) {} if (master) master.gain.value = muted ? 0 : 1; $('snd-name').textContent = muted ? 'なし' : 'あり'; };
+  $('snd-name').textContent = muted ? 'なし' : 'あり';
   // 回転の音（自分のコマ）
   let hum = null;
   function humSet(w) {
@@ -223,15 +251,16 @@
   function handle(e) {
     const side = i => (i === mine ? 'cyan' : 'red'), nm = i => names[i] || '？';
     if (e.type === 'stage') showStagePick(e);
-    else if (e.type === 'round') { big('ROUND ' + e.round, '', 1300); $('h-round').textContent = 'ROUND ' + e.round; released = false; power = 0; aim = 0; holdT = null; V.cn = 0; hold.classList.remove('on'); R.clearFx(); for (const i of [0, 1]) { if (R.tops[i]) { R.buildTop(i, tops[i], ans[i]); } } humStop(); setFinal(false); comboShow(0); }
+    else if (e.type === 'round') { big('ROUND ' + e.round, '', 1300); $('h-round').textContent = 'ROUND ' + e.round; released = false; power = 0; aim = 0; holdT = null; V.cn = 0; hold.classList.remove('on'); stopReplay(); snaps = []; R.clearFx(); for (const i of [0, 1]) { if (R.tops[i]) { R.buildTop(i, tops[i], ans[i]); } } humStop(); setFinal(false); comboShow(0); }
     else if (e.type === 'count') { }
-    else if (e.type === 'go') { big('まわせ！', '', 800); snd.go(); }
+    else if (e.type === 'go') { big('まわせ！', '', 800); snd.go(); bgm.start(); leader = -1; callAt = 0; }
     else if (e.type === 'land') { snd.land(); shake = Math.max(shake, 0.14); }
     else if (e.type === 'launch') { }
     else if (e.type === 'hit') {
       const tier = e.tier || 1, y = BB.surfY(V.st || 'std', Math.hypot(e.x, e.y)) + 0.07;
       R.spark(e.x, y, e.y, e.s, tier >= 3, tier); snd.hit(tier);
       shake = Math.max(shake, [0, 0.07, 0.18, 0.38, 0.7][tier]);
+      if (tier >= 3) snd.crowd(tier >= 4 ? 1 : 0.5);
       if (tier >= 3) { punch = { x: e.x, z: e.y, t: tier >= 4 ? 0.55 : 0.32, T: tier >= 4 ? 0.55 : 0.32, k: tier >= 4 ? 1 : 0.6 }; freeze = Math.max(freeze, tier >= 4 ? 0.11 : 0.06); }
       if (tier >= 4) { flash(); buzz(70); slow = Math.max(slow, 0.75); } else buzz(tier === 3 ? 30 : tier === 2 ? 12 : 5);
       if (tier >= 2) popAt(e.x, y + 0.12, e.y, ['', '', 'ガキッ！', 'ガキーン！', 'ドゴォッ！'][tier], 't' + tier);
@@ -240,19 +269,31 @@
     else if (e.type === 'grind') { const y = BB.surfY(V.st || 'std', Math.hypot(e.x, e.y)) + 0.06; R.grind(e.x, y, e.y); snd.grind(); shake = Math.max(shake, 0.05); if (Math.random() < 0.18) popAt(e.x, y + 0.1, e.y, 'ギャリギャリ', 'grd'); }
     else if (e.type === 'rail') { snd.rail(); R.railGlow = 1; }
     else if (e.type === 'wall') { snd.wall(e.s || 1); shake = Math.max(shake, 0.1); }
-    else if (e.type === 'final') { setFinal(true); snd.final(); }
+    else if (e.type === 'final') { setFinal(true); snd.final(); bgm.mode('final'); call('スピン勝負！ 最後まで粘れ！', 'red', true); }
+    else if (e.type === 'crit') {
+      const y = BB.surfY(V.st || 'std', Math.hypot(e.x, e.y)) + 0.07;
+      R.spark(e.x, y, e.y, 4, true, 4); snd.crit(); snd.crowd(1.2); flash(); buzz(80); shake = Math.max(shake, 0.85); freeze = Math.max(freeze, 0.13); slow = Math.max(slow, 0.5);
+      punch = { x: e.x, z: e.y, t: 0.6, T: 0.6, k: 1.15 };
+      popAt(e.x, y + 0.2, e.y, '会心！', 'crit'); call((e.i === mine && mode !== 'watch' ? 'ナイス！' : esc(nm(e.i)) + 'の') + '会心の一撃！', side(e.i), true);
+    }
+    else if (e.type === 'miss') { if (e.i === mine && mode !== 'watch') { snd.miss(); popAt(e.x, 0.15, e.y, 'スキ！', 'miss'); call('はやすぎた！ スキができた', 'red'); } }
+    else if (e.type === 'crack') {
+      snd.crack(e.lv); popAt(e.x, 0.12, e.y, e.lv >= 3 ? 'ピキピキッ！' : 'ピキッ', 'crk');
+      if (e.lv >= 2) call(e.i === mine && mode !== 'watch' ? 'あぶない！ バースト寸前！' : esc(nm(e.i)) + 'がバースト寸前！ あと一押し！', e.i === mine ? 'red' : 'cyan', true);
+    }
     else if (e.type === 'skill') { snd.skill(); big(SK[e.skill][0] + '！<small>' + esc(nm(e.i)) + '</small>', side(e.i), 1100); }
     else if (e.type === 'refl') big('反射！', side(e.i), 900);
-    else if (e.type === 'burst') { snd.burst(); shake = 0.9; slow = 1.2; freeze = 0.12; flash(); buzz(140); setFinal(false); }
-    else if (e.type === 'out') { snd.out(); shake = 0.5; slow = 0.9; freeze = 0.1; setFinal(false); }
+    else if (e.type === 'burst') { snd.burst(); snd.crowd(1.5); shake = 0.9; slow = 1.2; freeze = 0.12; flash(); buzz(140); setFinal(false); }
+    else if (e.type === 'out') { snd.out(); snd.crowd(1.3); shake = 0.5; slow = 0.9; freeze = 0.1; setFinal(false); }
     else if (e.type === 'stop') { snd.stop(); setFinal(false); }
     else if (e.type === 'roundEnd') {
-      humStop(); setFinal(false); comboShow(0);
+      humStop(); setFinal(false); comboShow(0); bgm.stop(); R.critRing(false);
+      if (e.why === 'burst' || e.why === 'out') { const buf = snaps.slice(); clearTimeout(replayTm); replayTm = setTimeout(() => startReplay(buf, e.winner), 1300); }
       const w = e.winner, me = w === mine;
       big(WHY[e.why] + (w >= 0 ? '<small>' + esc(nm(w)) + ' ＋' + e.pts + '点</small>' : ''), w < 0 ? '' : mode === 'watch' ? 'cyan' : me ? 'cyan' : 'red', 2200);
       if (w >= 0 && mode !== 'watch') (me ? snd.win : snd.lose)();
     }
-    else if (e.type === 'over') finish(e.winner, e.score);
+    else if (e.type === 'over') { bgm.stop(); finish(e.winner, e.score); }
   }
 
   // 画面が白く光る
@@ -279,14 +320,55 @@
     finalOn = on; $('vig').classList.toggle('on', on); $('final-tag').classList.toggle('on', on); heartT = 0;
     if (!on) spinLbl.forEach(d => { d.hidden = true; });
   }
+  // 実況（上に出る短い文字）
+  let callAt = 0, callTm = 0, leader = -1;
+  function call(t, cls, force) {
+    const n = performance.now(); if (!force && n - callAt < 2600) return; callAt = n;
+    const el = $('call'); el.innerHTML = t; el.className = 'call show ' + (cls || ''); clearTimeout(callTm); callTm = setTimeout(() => el.classList.remove('show'), 1700);
+  }
+  // 決着のリプレイ（最後の1.6秒を、ゆっくり・低いカメラで）
+  let snaps = [], replay = null, replayTm = 0;
+  function snapNow(B) { snaps.push({ t: B.t, f: B.f.map(f => ({ x: f.x, y: f.y, ang: f.ang, w: f.w, state: f.state, wob: f.wob, danger: f.danger, vx: f.vx, vy: f.vy, outV: f.outV })) }); if (snaps.length > 240) snaps.shift(); }
+  function startReplay(buf, winner) {
+    if (!V || V.ph !== 'end' || buf.length < 4) return;
+    let k = buf.length - 1; while (k > 0 && buf[k].f.some(f => f.state !== 'spin')) k--;
+    const tEnd = buf[k].t, list = buf.filter(q => q.t >= tEnd - 1.3 && q.t <= tEnd + 0.35); if (list.length < 3) return;
+    for (const i of [0, 1]) { R.buildTop(i, tops[i], ans[i]); R.tops[i].y = -1; } R.clearFx();
+    replay = { list, t0: list[0].t, t: list[0].t, loser: 1 - winner, done: false, fired: false, tEnd };
+    $('replay-tag').hidden = false; $('big').classList.remove('show');
+  }
+  function stopReplay() { clearTimeout(replayTm); if (replay) { replay = null; $('replay-tag').hidden = true; } }
+  function stepReplay(rdt, t) {
+    const r = replay; r.t += rdt * 0.33;
+    const L = r.list; let a = L[0], b = L[L.length - 1];
+    for (let k = 0; k < L.length - 1; k++) if (L[k + 1].t >= r.t) { a = L[k]; b = L[k + 1]; break; }
+    const q = b.t > a.t ? Math.min(1, Math.max(0, (r.t - a.t) / (b.t - a.t))) : 0;
+    for (const i of [0, 1]) {
+      const fa = a.f[i], fb = b.f[i], st = q < 0.5 ? fa.state : fb.state;
+      const f = { x: fa.x + (fb.x - fa.x) * q, y: fa.y + (fb.y - fa.y) * q, ang: fa.ang, w: fa.w, state: st, wob: fa.wob, danger: fa.danger, vx: fb.vx, vy: fb.vy, outV: fb.outV };
+      R.sync(i, f, rdt * 0.33, t);
+    }
+    if (!r.fired && r.t >= r.tEnd) { r.fired = true; flash(); snd.crit(); shake = 0.6; }
+    if (r.t >= L[L.length - 1].t) { const fin = L[L.length - 1]; stopReplay(); for (const i of [0, 1]) { R.buildTop(i, tops[i], ans[i]); R.tops[i].y = -1; } }
+    // 低いカメラで、負けたコマの近くから
+    const lf = (b.f[r.loser] || b.f[0]), ang = 0.8 + (r.t - r.t0) * 0.6;
+    const tp = new THREE.Vector3(lf.x + Math.cos(ang) * 0.75, 0.22, lf.y + Math.sin(ang) * 0.75);
+    if (!r.cam) { r.cam = 1; camP.copy(tp); camL.set(lf.x, -0.05, lf.y); }
+    camP.lerp(tp, Math.min(1, rdt * 3)); camL.lerp(new THREE.Vector3(lf.x, -0.05, lf.y), Math.min(1, rdt * 4));
+    R.camera.position.copy(camP); if (shake > 0) { R.camera.position.x += (Math.random() - 0.5) * shake * 0.06; shake = Math.max(0, shake - rdt * 2.5); } R.camera.lookAt(camL);
+  }
+  // 会心のねらい（ぶつかる直前）
+  const nearNow = () => { if (!V || !V.battle || V.ph !== 'battle') return null; return M && M.battle ? M.battle.near : BB.Battle.nearOf(V.battle.f); };
+  const localBt = () => (V.bt || 0) + (performance.now() - (V.btAt || performance.now())) / 1000 * (V.ts == null ? 1 : V.ts);
   // 応援（バトル中に画面をタップ）
   function tapCheer(e) {
     if (!V || V.ph !== 'battle' || mode === 'watch') return;
-    const me = V.battle && V.battle.f[mine]; if (!me || me.state !== 'spin' || me.used) return;
+    const me = V.battle && V.battle.f[mine]; if (!me || me.state !== 'spin') return;
     const n = performance.now(); tapTimes = tapTimes.filter(t => n - t < 1000); if (tapTimes.length >= 8) return; tapTimes.push(n);
     const r = document.createElement('div'); r.className = 'tap-ring'; r.style.left = e.clientX + 'px'; r.style.top = e.clientY + 'px'; $('fx-layer').appendChild(r); setTimeout(() => r.remove(), 460);
-    if (me.gauge < 1) { const p = document.createElement('div'); p.className = 'tap-plus'; p.textContent = '+応援'; p.style.left = e.clientX + 'px'; p.style.top = (e.clientY - 30) + 'px'; $('fx-layer').appendChild(p); setTimeout(() => p.remove(), 620); }
+    if (me.gauge < 1 && !me.used) { const p = document.createElement('div'); p.className = 'tap-plus'; p.textContent = '+応援'; p.style.left = e.clientX + 'px'; p.style.top = (e.clientY - 30) + 'px'; $('fx-layer').appendChild(p); setTimeout(() => p.remove(), 620); }
     snd.tap(); buzz(4);
+    if (nearNow()) { if (M) M.crit(mine, null); else if (room) room.sendCmd({ k: 'cr', t: Math.round(localBt() * 1000) / 1000 }); }
     if (M) M.cheer(mine, 1, BB.now()); else tapN++;
   }
 
@@ -336,12 +418,22 @@
     // スキルボタン
     const sb = $('b-skill'), me = V.battle && V.battle.f[mine];
     sb.hidden = !(ph === 'battle' && me && me.state !== 'wait') || mode === 'watch';
-    $('tap-hint').hidden = sb.hidden || !me || me.used || me.gauge >= 1 || me.state !== 'spin';
+    $('tap-hint').hidden = sb.hidden || !me || me.state !== 'spin' || (V.battle.t || 0) > 12;
     if (!sb.hidden) { const gq = me.used ? 0 : me.gauge; $('sk-ring').style.strokeDashoffset = 276.5 * (1 - gq); sb.classList.toggle('ready', !me.used && gq >= 1); sb.classList.toggle('used', !!me.used); $('sk-name').textContent = SK[tops[mine].skill][0]; }
     // コマ
     const t = now / 1000;
+    if (replay) { stepReplay(rdt, t); R.fx(dt); R.render(); return; }
     if (V.battle) {
       const B = V.battle;
+      if (ph === 'battle' || ph === 'end') snapNow(B);
+      // 会心の輪
+      const nr = ph === 'battle' && mode !== 'watch' ? nearNow() : null;
+      R.critRing(!!nr, nr ? nr.x : 0, nr ? nr.y : 0, nr ? nr.tc / 0.6 : 1);
+      // 実況：どちらが押しているか
+      if (ph === 'battle' && B.t > 4 && B.f[0].state === 'spin' && B.f[1].state === 'spin') {
+        const u0 = Math.abs(B.f[0].w) / BB.W0, u1 = Math.abs(B.f[1].w) / BB.W0, ld = u0 - u1 > 0.12 ? 0 : u1 - u0 > 0.12 ? 1 : -1;
+        if (ld >= 0 && ld !== leader) { leader = ld; call(esc(names[ld] || '？') + 'が押している！', mode === 'watch' ? '' : ld === mine ? 'cyan' : 'red'); }
+      }
       for (const i of [0, 1]) {
         const f = B.f[i];
         if (ph === 'intro' || ph === 'aim' || ph === 'count' || ph === 'vote') { const sx = i ? 0.58 : -0.58; f.x = sx; f.y = 0; f.state = 'wait'; R.sync(i, f, dt, t); }
@@ -374,7 +466,7 @@
       if (p.ph === 'count') V.cn = 0;
       if (p.ph === 'battle' && V.ph !== 'battle') { $('launch').hidden = true; }
     }
-    V.ph = p.ph; V.ts = p.ts; V.until = now + (p.u || 0); V.goAtS = p.g != null ? BB.now() + p.g : null; V.sc = p.sc; V.rd = p.rd; V.v = p.v; V.r = p.r;
+    V.ph = p.ph; V.ts = p.ts; V.bt = p.bt; V.btAt = now; V.until = now + (p.u || 0); V.goAtS = p.g != null ? BB.now() + p.g : null; V.sc = p.sc; V.rd = p.rd; V.v = p.v; V.r = p.r;
     if (p.st && p.st !== V.st) { V.st = p.st; if (!M) { R.buildStage(p.st); } }
     if (p.ph === 'vote' && !M && mode !== 'watch') { const vt = Math.max(0, (V.until - now) / BB.MATCH.T_VOTE); $('vote-bar').style.width = (vt * 100) + '%'; }
     if (M && p.ph === 'vote') $('vote-bar').style.width = Math.max(0, (V.until - now) / BB.MATCH.T_VOTE * 100) + '%';
@@ -459,7 +551,7 @@
     if (room) { room.rematch(); $('btn-again').disabled = true; $('again-msg').textContent = 'あいての「もう一回」を待っています…'; }
   };
   $('btn-reedit').onclick = () => { $('ov-result').classList.remove('show'); endBattle(); makeTop(() => startCpu()); };
-  function endBattle() { M = null; V = null; cpu = null; cpuPlan = null; humStop(); R.clearFx(); arrow.visible = false; for (const i of [0, 1]) R.dropTop(i); }
+  function endBattle() { stopReplay(); bgm.stop(); R.critRing(false); M = null; V = null; cpu = null; cpuPlan = null; humStop(); R.clearFx(); arrow.visible = false; for (const i of [0, 1]) R.dropTop(i); }
   function toTitle() {
     leaveRoom(); endBattle(); mode = 'title'; rakuTop = null; BB.Editor.stop(); BB.Setup.stop(); clearInterval(dwTm);
     for (const o of ['ov-result', 'ov-vote', 'ov-drawwait', 'ov-reveal', 'ov-online']) $(o).classList.remove('show');
@@ -492,7 +584,7 @@
         onDraw: g => { if (room === r) startDraw(g); },
         onStart: g => { if (room === r) onlineStart(g); },
         onState: s => { if (room === r) onState(s); },
-        onCmd: c => { if (room !== r || !M || !c) return; if (c.k === 'vote') M.vote(1, c.v); else if (c.k === 'aim') M.setAim(1, c.a); else if (c.k === 'rel') M.release(1, { power: c.p, at: c.at }); else if (c.k === 'skill') M.skill(1); else if (c.k === 'ch') M.cheer(1, +c.n || 0, BB.now()); },
+        onCmd: c => { if (room !== r || !M || !c) return; if (c.k === 'vote') M.vote(1, c.v); else if (c.k === 'aim') M.setAim(1, c.a); else if (c.k === 'rel') M.release(1, { power: c.p, at: c.at }); else if (c.k === 'skill') M.skill(1); else if (c.k === 'ch') M.cheer(1, +c.n || 0, BB.now()); else if (c.k === 'cr') M.crit(1, +c.t); },
         onCheer: v => { if (room === r) cheerPop(v); },
         onLeft: () => { if (room !== r) return; if (V && V.ph !== 'over') { BB.toast('あいてが退室しました'); toTitle(); } else { $('btn-again').hidden = true; $('again-msg').textContent = 'あいてが退室しました'; } }
       }, want);
