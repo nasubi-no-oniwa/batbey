@@ -94,7 +94,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .pts { display: flex; flex-direction: column; gap: 6px; }
 .pt { display: grid; grid-template-columns: 52px 36px 1fr 36px; align-items: center; gap: 6px; }
 .pt span { font-size: 14px; } .pt button { height: 32px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--panel2); font-size: 18px; padding: 0; }
-.pt .bar { display: grid; grid-template-columns: repeat(10, 1fr); gap: 2px; height: 18px; }
+.pt .bar { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; height: 18px; }
 .pt .bar i { background: rgba(255,255,255,.08); border-radius: 3px; } .pt .bar i.on { background: var(--c, var(--hot)); box-shadow: 0 0 6px var(--c, var(--hot)); }
 .pick3, .pick2 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; } .pick2 { grid-template-columns: 1fr 1fr; }
 .pick3 button, .pick2 button { border: 1.5px solid var(--line); border-radius: 12px; background: var(--panel2); padding: 8px 4px; font-size: 13px; display: flex; flex-direction: column; gap: 2px; align-items: center; }

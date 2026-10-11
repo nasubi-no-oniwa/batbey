@@ -9,7 +9,7 @@ BB.rand = BB.rand || (() => Math.random());   // 試合の計算で使う乱数�
   const D = 480, C = D / 2, R_PX = 220, HUB_PX = 26;
   const NA = 128;                                  // 当たり判定の角度の数
   const TOP_R = 0.2;                                // コマのいちばん外の半径（スタジアムの半径＝1）
-  const BUDGET = 10, PMAX = 10;                     // ポイント：合計10（ひとつに全部ふってもいい）
+  const BUDGET = 10, PMAX = 5;                      // ポイント：合計10、ひとつ5まで
   const MIN_FILL = 0.33;                           // 最低ぬり：円の3分の1
   const COLORS = ['#1f2430', '#ffffff', '#ef4444', '#f97316', '#f5b800', '#22c55e', '#14b8a6', '#3b82f6', '#8b5cf6', '#ec4899'];
   const AXES = { atk: '攻撃型', bal: 'バランス型', sta: '持久型' };
@@ -68,7 +68,7 @@ BB.rand = BB.rand || (() => Math.random());   // 試合の計算で使う乱数�
   // ---------- 強さ ----------
   // 形で少し、ポイントで大きく決まる。見た目と配分がちぐはぐなら、形の効果は少しだけ弱まる
   // ポイント → 0〜1（はじめの数ポイントがよく効く。全部ふると1）
-  const PC = v => (1 - Math.exp(-Math.max(0, Math.min(PMAX, v || 0)) / 3.5)) / (1 - Math.exp(-PMAX / 3.5));
+  const PC = v => (1 - Math.exp(-Math.max(0, Math.min(PMAX, v || 0)) / 2.6)) / (1 - Math.exp(-PMAX / 2.6));
   // 軸の型：どう動くか
   //   move：床をけって動く力  orbitR/orbitV：まわる半径と速さ  dash：ときどき相手へつっこむ（間かく・速さ）  life：ぶつからなければ回る秒数
   const AXP = {
