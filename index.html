@@ -30,56 +30,57 @@
 <!-- タイトル -->
 <section id="title" class="screen active">
   <div class="t-box">
-    <h1 class="logo"><span>バト</span>ベイ</h1>
-    <p class="tag">描いて、回して、ぶつけあえ。</p>
-    <div class="my-top"><canvas id="t-prev" width="150" height="150"></canvas><div><p id="t-name">まだコマがありません</p><button class="btn sub" id="btn-make">コマをつくる</button><p class="t-id" id="t-id"></p></div></div>
-    <p class="label">CPUとたいせん</p>
-    <div class="row3"><button class="btn lv" data-level="easy">よわい</button><button class="btn lv" data-level="normal">ふつう</button><button class="btn lv" data-level="hard">つよい</button></div>
-    <button class="btn hot" id="btn-online">あいことばで対戦</button>
-    <div class="row2"><button class="btn sub" id="btn-find">IDでよぶ</button><button class="btn sub" id="btn-gal">みんなのコマ</button></div>
-    <div class="row2"><button class="btn sub" id="btn-howto">あそびかた</button><button class="btn sub" id="btn-q">画質：<b id="q-name">おまかせ</b></button><button class="btn sub" id="btn-snd">音：<b id="snd-name">あり</b></button></div>
-    <a class="home-link" href="https://nasubi-no-oniwa.github.io/">🍆 なすびのお庭へ</a>
+    <h1 class="logo" data-ih="logo"><span>バト</span>ベイ</h1>
+    <p class="tag" data-i="tag">描いて、回して、ぶつけあえ。</p>
+    <div class="my-top"><canvas id="t-prev" width="150" height="150"></canvas><div><p id="t-name" data-i="no_top">まだコマがありません</p><button class="btn sub" id="btn-make" data-i="make_top">コマをつくる</button><p class="t-id" id="t-id"></p></div></div>
+    <p class="label" data-i="vs_cpu">CPUとたいせん</p>
+    <div class="row3"><button class="btn lv" data-level="easy" data-i="easy">よわい</button><button class="btn lv" data-level="normal" data-i="normal">ふつう</button><button class="btn lv" data-level="hard" data-i="hard">つよい</button></div>
+    <button class="btn hot" id="btn-online" data-i="online">あいことばで対戦</button>
+    <div class="row2"><button class="btn sub" id="btn-find" data-i="find_btn">IDでよぶ</button><button class="btn sub" id="btn-gal" data-i="gal_btn">みんなのコマ</button></div>
+    <div class="row2"><button class="btn sub" id="btn-howto" data-i="howto">あそびかた</button><button class="btn sub" id="btn-q"><span data-i="q_label">画質：</span><b id="q-name">おまかせ</b></button><button class="btn sub" id="btn-snd"><span data-i="snd_label">音：</span><b id="snd-name">あり</b></button></div>
+    <a class="home-link" href="https://nasubi-no-oniwa.github.io/" data-i="home_e">🍆 なすびのお庭へ</a>
+    <div class="langs" role="group" aria-label="Language"><button type="button" data-lang="ja">日本語</button><button type="button" data-lang="en">English</button><button type="button" data-lang="zh">繁中</button><button type="button" data-lang="ko">한국어</button></div>
   </div>
 </section>
 
 <!-- コマを描く -->
 <section id="editor" class="screen">
   <div class="ed-top">
-    <button class="mini" id="ed-back">もどる</button>
-    <span class="ed-title">コマを描く</span>
+    <button class="mini" id="ed-back" data-i="back">もどる</button>
+    <span class="ed-title" data-i="draw_title">コマを描く</span>
     <b class="ed-timer" id="ed-timer" hidden>60</b>
     <button class="mini" id="ed-more">…</button>
-    <button class="mini go" id="ed-done">つぎへ</button>
+    <button class="mini go" id="ed-done" data-i="next">つぎへ</button>
   </div>
   <div class="ed-wrap" id="ed-wrap"><canvas id="ed-canvas"></canvas>
     <div class="ed-sub" id="ed-sub"></div>
-    <div class="ed-zoom"><button id="ed-zin">＋</button><button id="ed-zout">－</button><button id="ed-zfit">全体</button></div>
+    <div class="ed-zoom"><button id="ed-zin">＋</button><button id="ed-zout">－</button><button id="ed-zfit" data-i="fit">全体</button></div>
     <div class="ed-meter"><span id="ed-fill-t">ぬり 0%</span><i><b id="ed-fill"></b><em></em></i></div>
-    <div id="ed-menu" class="ed-menu" hidden><button id="ed-sample">見本を出す</button><button id="ed-clear" class="warn">全部消す</button></div>
+    <div id="ed-menu" class="ed-menu" hidden><button id="ed-sample" data-i="sample">見本を出す</button><button id="ed-clear" class="warn" data-i="clear_all">全部消す</button></div>
   </div>
   <div class="ed-tools" id="ed-tools">
-    <button data-tool="pen"><i>✏️</i>ペン</button><button data-tool="fill"><i>🪣</i>ぬる</button><button data-tool="erase"><i>🧽</i>けす</button><button data-tool="shape"><i>🔷</i>図形</button><button data-tool="stamp"><i>⭐</i>スタンプ</button><button id="ed-sym" class="sym"><i>✳️</i><span id="ed-sym-t">対称なし</span></button><button id="ed-undo" class="undo"><i>↶</i>もどす</button>
+    <button data-tool="pen"><i>✏️</i><span data-i="t_pen">ペン</span></button><button data-tool="fill"><i>🪣</i><span data-i="t_fill">ぬる</span></button><button data-tool="erase"><i>🧽</i><span data-i="t_erase">けす</span></button><button data-tool="shape"><i>🔷</i><span data-i="t_shape">図形</span></button><button data-tool="stamp"><i>⭐</i><span data-i="t_stamp">スタンプ</span></button><button id="ed-sym" class="sym"><i>✳️</i><span id="ed-sym-t">対称なし</span></button><button id="ed-undo" class="undo"><i>↶</i><span data-i="t_undo">もどす</span></button>
   </div>
   <div class="ed-paint"><div id="ed-colors" class="ed-colors"></div><button id="ed-size-btn" class="ed-size-btn"><i id="ed-size-dot"></i></button>
-    <div class="ed-size" id="ed-size-pop" hidden><span>ふとさ</span><input type="range" id="ed-size" min="2" max="60" value="10"><b id="ed-size-n">10</b></div>
+    <div class="ed-size" id="ed-size-pop" hidden><span data-i="size">ふとさ</span><input type="range" id="ed-size" min="2" max="60" value="10"><b id="ed-size-n">10</b></div>
   </div>
 </section>
 
 <!-- コマの設定 -->
 <section id="setup" class="screen">
-  <div class="su-top"><button class="mini" id="su-back">絵にもどる</button><b class="ed-timer" id="su-timer" hidden>20</b><button class="mini go" id="su-done">完成！</button></div>
+  <div class="su-top"><button class="mini" id="su-back" data-i="back_draw">絵にもどる</button><b class="ed-timer" id="su-timer" hidden>20</b><button class="mini go" id="su-done" data-i="done">完成！</button></div>
   <div class="su-body">
     <div class="su-head"><canvas id="su-prev" width="160" height="160"></canvas>
-      <div><label class="field-l">コマの名前<input id="su-name" maxlength="8" placeholder="なまえ" autocomplete="off"></label><p class="hint" id="su-shape"></p></div></div>
-    <h3>ポイント配分 <small>のこり <b id="su-left">0</b></small></h3>
+      <div><label class="field-l"><span data-i="top_name">コマの名前</span><input id="su-name" maxlength="8" placeholder="なまえ" data-ip="name_ph" autocomplete="off"></label><p class="hint" id="su-shape"></p></div></div>
+    <h3><span data-i="su_pts">ポイント配分</span> <small><span data-i="left_l">のこり</span> <b id="su-left">0</b></small></h3>
     <div class="pts" id="su-pts"></div>
-    <h3>軸</h3>
+    <h3 data-i="su_axis">軸</h3>
     <div class="pick3" id="su-axis"></div>
-    <h3>ロックの固さ <small>（固い＝バーストしにくいが、回転が落ちやすい）</small></h3>
-    <div class="lock-row"><span>ゆるい</span><input type="range" id="su-lock" min="0" max="100" value="50"><span>かたい</span></div>
-    <h3>回る向き</h3>
-    <div class="pick2" id="su-spin"><button data-v="R">右回り ↻</button><button data-v="L">左回り ↺</button></div>
-    <h3>スキル <small>（ぶつかるとたまる。1回戦に1回）</small></h3>
+    <h3 data-ih="su_lock">ロックの固さ <small>（固い＝バーストしにくいが、回転が落ちやすい）</small></h3>
+    <div class="lock-row"><span data-i="loose_l">ゆるい</span><input type="range" id="su-lock" min="0" max="100" value="50"><span data-i="tight_l">かたい</span></div>
+    <h3 data-i="su_spin">回る向き</h3>
+    <div class="pick2" id="su-spin"><button data-v="R" data-i="spin_r">右回り ↻</button><button data-v="L" data-i="spin_l">左回り ↺</button></div>
+    <h3 data-ih="su_skill">スキル <small>（ぶつかるとたまる。1回戦に1回）</small></h3>
     <div class="skills" id="su-skill"></div>
   </div>
 </section>
@@ -87,8 +88,8 @@
 <!-- たたかう -->
 <section id="battle" class="screen">
   <div class="hud">
-    <div class="side s0"><canvas id="h-prev0" width="64" height="64"></canvas><div><b id="h-name0">あなた</b><div class="pips" id="h-pips0"></div><i class="spin"><b id="h-spin0"></b></i></div></div>
-    <div class="mid"><div class="round" id="h-round">ROUND 1</div><button class="mini" id="btn-quit">やめる</button><span class="watchers" id="watchers" hidden></span></div>
+    <div class="side s0"><canvas id="h-prev0" width="64" height="64"></canvas><div><b id="h-name0" data-i="you">あなた</b><div class="pips" id="h-pips0"></div><i class="spin"><b id="h-spin0"></b></i></div></div>
+    <div class="mid"><div class="round" id="h-round">ROUND 1</div><button class="mini" id="btn-quit" data-i="quit">やめる</button><span class="watchers" id="watchers" hidden></span></div>
     <div class="side s1"><div><b id="h-name1">CPU</b><div class="pips" id="h-pips1"></div><i class="spin"><b id="h-spin1"></b></i></div><canvas id="h-prev1" width="64" height="64"></canvas></div>
   </div>
   <div class="vignette" id="vig"></div>
@@ -96,27 +97,27 @@
   <div class="combo" id="combo"></div>
   <div class="call" id="call"></div>
   <div class="replay-tag" id="replay-tag" hidden>REPLAY</div>
-  <div class="final-tag" id="final-tag">スピン勝負！</div>
+  <div class="final-tag" id="final-tag" data-i="final_tag">スピン勝負！</div>
   <div class="big" id="big"></div>
-  <div class="tap-hint" id="tap-hint" hidden>タップで応援（スキルがたまる）／黄色い輪が重なる瞬間にタップで<b>会心</b>！</div>
-  <div class="aim-tip" id="aim-tip" hidden>左右にドラッグで、打ち出す向き</div>
-  <div class="watch-tag" id="watch-tag" hidden>観戦中</div>
+  <div class="tap-hint" id="tap-hint" hidden data-ih="tap_hint">タップで応援（スキルがたまる）／黄色い輪が重なる瞬間にタップで<b>会心</b>！</div>
+  <div class="aim-tip" id="aim-tip" hidden data-i="aim_tip">左右にドラッグで、打ち出す向き</div>
+  <div class="watch-tag" id="watch-tag" hidden data-i="watching">観戦中</div>
   <div class="launch" id="launch" hidden>
     <div class="gauge"><i id="g-fill"></i><span class="z-good"></span><span class="z-over"></span></div>
-    <button id="b-hold">長押しで<br>ためる</button>
+    <button id="b-hold" data-ih="hold">長押しで<br>ためる</button>
   </div>
-  <button class="skill-btn" id="b-skill" hidden><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" class="bg"/><circle cx="50" cy="50" r="44" class="fg" id="sk-ring"/></svg><span id="sk-name">スキル</span></button>
+  <button class="skill-btn" id="b-skill" hidden><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" class="bg"/><circle cx="50" cy="50" r="44" class="fg" id="sk-ring"/></svg><span id="sk-name" data-i="skill">スキル</span></button>
   <div class="cheer-bar" id="cheer-bar" hidden><button data-e="0">👏</button><button data-e="1">🔥</button><button data-e="2">😂</button><button data-e="3">😱</button><button data-e="4">💪</button><button data-e="5">✨</button></div>
 </section>
 
 <!-- スタジアム投票 -->
 <div class="overlay" id="ov-vote">
   <div class="card">
-    <h2>スタジアムに投票</h2>
-    <p class="hint">2つえらんでね。票の多いスタジアムで戦う（同じならランダム）</p>
+    <h2 data-i="vote_title">スタジアムに投票</h2>
+    <p class="hint" data-i="vote_hint">2つえらんでね。票の多いスタジアムで戦う（同じならランダム）</p>
     <div class="stages" id="vote-list"></div>
     <div class="vote-time"><i id="vote-bar"></i></div>
-    <button class="btn hot wide" id="btn-vote">これで投票</button>
+    <button class="btn hot wide" id="btn-vote" data-i="vote_btn">これで投票</button>
     <p class="hint" id="vote-msg"></p>
   </div>
 </div>
@@ -124,109 +125,110 @@
 <!-- 結果 -->
 <div class="overlay" id="ov-result">
   <div class="card">
-    <h2 id="res-title">かち！</h2>
+    <h2 id="res-title" data-i="win">かち！</h2>
     <p id="res-sub"></p>
     <div class="vs-row"><figure><canvas id="r0" width="120" height="120"></canvas><figcaption id="rn0"></figcaption></figure><b>VS</b><figure><canvas id="r1" width="120" height="120"></canvas><figcaption id="rn1"></figcaption></figure></div>
-    <button class="btn sub" id="btn-keep">相手のコマをライバル帳に入れる</button>
-    <button class="btn sub" id="btn-savedraw" hidden>描いたコマを保存する（IDがつく）</button>
-    <button class="btn hot" id="btn-again">もう一回</button>
+    <button class="btn sub" id="btn-keep" data-i="keep_one">相手のコマをライバル帳に入れる</button>
+    <button class="btn sub" id="btn-savedraw" hidden data-i="save_draw">描いたコマを保存する（IDがつく）</button>
+    <button class="btn hot" id="btn-again" data-i="again">もう一回</button>
     <p class="hint" id="again-msg"></p>
-    <button class="btn sub" id="btn-reedit">コマをなおす</button>
-    <button class="btn sub" id="btn-title">タイトルへ</button>
+    <button class="btn sub" id="btn-reedit" data-i="edit_top">コマをなおす</button>
+    <button class="btn sub" id="btn-title" data-i="to_title">タイトルへ</button>
   </div>
 </div>
 
 <!-- あいことば -->
 <div class="overlay" id="ov-online">
   <div class="card">
-    <h2>あいことばで対戦</h2>
+    <h2 data-i="online">あいことばで対戦</h2>
     <div id="online-form">
-      <div class="mode-pick" id="mode-pick"><button data-mode="normal" class="on">いまのコマで</button><button data-mode="raku">らくがきバトル<small>60秒で描いて20秒で設定</small></button></div>
-      <label class="field-l">あいことば<input id="in-code" maxlength="20" autocomplete="off" placeholder="例：バトベイ123"></label>
-      <label class="field-l">なまえ<input id="in-name" maxlength="8" autocomplete="off" placeholder="ななし"></label>
-      <p class="hint">同じあいことばを入れた人と対戦。3人目からは<b>観戦</b>（応援スタンプを送れる）。あそびかたは、さきに入った人のほうになります。</p>
-      <button class="btn hot wide" id="btn-join">はいる</button>
+      <div class="mode-pick" id="mode-pick"><button data-mode="normal" class="on" data-i="mode_now">いまのコマで</button><button data-mode="raku" data-ih="mode_raku">らくがきバトル<small>60秒で描いて20秒で設定</small></button></div>
+      <label class="field-l"><span data-i="passcode">あいことば</span><input id="in-code" maxlength="20" autocomplete="off" placeholder="例：バトベイ123" data-ip="ex_code"></label>
+      <label class="field-l"><span data-i="name">なまえ</span><input id="in-name" maxlength="8" autocomplete="off" placeholder="ななし" data-ip="noname"></label>
+      <p class="hint" data-ih="online_note">同じあいことばを入れた人と対戦。3人目からは<b>観戦</b>（応援スタンプを送れる）。あそびかたは、さきに入った人のほうになります。</p>
+      <button class="btn hot wide" id="btn-join" data-i="join">はいる</button>
     </div>
     <div id="online-wait" hidden>
-      <p class="wait-code">あいことば「<b id="wait-code"></b>」</p>
-      <p class="wait-msg" id="wait-msg">あいてを待っています…</p>
-      <button class="btn sub wide" id="btn-copy">さそうリンクをコピー</button>
+      <p class="wait-code"><span data-i="wait_pre">あいことば「</span><b id="wait-code"></b><span data-i="wait_post">」</span></p>
+      <p class="wait-msg" id="wait-msg" data-i="waiting">あいてを待っています…</p>
+      <button class="btn sub wide" id="btn-copy" data-i="copy_link">さそうリンクをコピー</button>
     </div>
     <p class="err" id="online-err"></p>
-    <button class="btn sub wide" id="btn-online-close">もどる</button>
+    <button class="btn sub wide" id="btn-online-close" data-i="back">もどる</button>
   </div>
 </div>
 <div class="overlay" id="ov-drawwait">
-  <div class="card"><h2 id="dw-title">ふたりが描いています</h2><div class="dw-timer" id="dw-timer">60</div><p class="hint" id="dw-msg"></p>
+  <div class="card"><h2 id="dw-title" data-i="dw_title0">ふたりが描いています</h2><div class="dw-timer" id="dw-timer">60</div><p class="hint" id="dw-msg"></p>
     <div class="cheer-bar in-card" id="dw-cheer" hidden><button data-e="0">👏</button><button data-e="1">🔥</button><button data-e="2">😂</button><button data-e="3">😱</button><button data-e="4">💪</button><button data-e="5">✨</button></div>
-    <button class="btn sub wide" id="dw-quit">やめる</button></div>
+    <button class="btn sub wide" id="dw-quit" data-i="quit">やめる</button></div>
 </div>
-<div class="overlay reveal-ov" id="ov-reveal"><div class="reveal"><p class="rv-say" id="rv-say">せーの…</p><div class="rv-row"><figure><canvas id="rv0" width="150" height="150"></canvas><figcaption id="rvn0"></figcaption></figure><b>VS</b><figure><canvas id="rv1" width="150" height="150"></canvas><figcaption id="rvn1"></figcaption></figure></div></div></div>
+<div class="overlay reveal-ov" id="ov-reveal"><div class="reveal"><p class="rv-say" id="rv-say" data-i="rv_ready">せーの…</p><div class="rv-row"><figure><canvas id="rv0" width="150" height="150"></canvas><figcaption id="rvn0"></figcaption></figure><b>VS</b><figure><canvas id="rv1" width="150" height="150"></canvas><figcaption id="rvn1"></figcaption></figure></div></div></div>
 
 <!-- ID -->
 <div class="overlay" id="ov-save">
   <div class="card">
-    <h2 id="sv-title">コマにIDをつける</h2>
+    <h2 id="sv-title" data-i="sv_title">コマにIDをつける</h2>
     <canvas id="sv-prev" class="mini-prev" width="120" height="120"></canvas>
     <div id="sv-form">
-      <label class="field-l">作者名<input id="sv-author" maxlength="8" autocomplete="off" placeholder="ななし"></label>
-      <label class="chk"><input type="checkbox" id="sv-pub"> 「みんなのコマ」に公開する</label>
-      <label class="chk" id="sv-mine-l" hidden><input type="checkbox" id="sv-mine" checked> 自分のコマにする</label>
-      <p class="hint">IDを教えると、だれでもこのコマを使えます。</p>
-      <button class="btn hot wide" id="sv-ok">保存してIDをもらう</button>
-      <button class="btn sub wide" id="sv-skip">IDなしで使う</button>
+      <label class="field-l"><span data-i="author">作者名</span><input id="sv-author" maxlength="8" autocomplete="off" placeholder="ななし" data-ip="noname"></label>
+      <label class="chk"><input type="checkbox" id="sv-pub"> <span data-i="sv_pub">「みんなのコマ」に公開する</span></label>
+      <label class="chk" id="sv-mine-l" hidden><input type="checkbox" id="sv-mine" checked> <span data-i="sv_mine">自分のコマにする</span></label>
+      <p class="hint" data-i="sv_hint">IDを教えると、だれでもこのコマを使えます。</p>
+      <button class="btn hot wide" id="sv-ok" data-i="sv_ok">保存してIDをもらう</button>
+      <button class="btn sub wide" id="sv-skip" data-i="sv_skip">IDなしで使う</button>
     </div>
-    <div id="sv-done" hidden><p class="hint">このコマのID</p><p class="big-id" id="sv-id"></p><button class="btn sub wide" id="sv-copy">IDをコピー</button><p class="hint warn">スクショかメモをしておくと、機種変更しても戻せます</p><button class="btn hot wide" id="sv-close">OK</button></div>
+    <div id="sv-done" hidden><p class="hint" data-i="sv_id_l">このコマのID</p><p class="big-id" id="sv-id"></p><button class="btn sub wide" id="sv-copy" data-i="copy_id">IDをコピー</button><p class="hint warn" data-i="sv_warn">スクショかメモをしておくと、機種変更しても戻せます</p><button class="btn hot wide" id="sv-close">OK</button></div>
     <p class="err" id="sv-err"></p>
   </div>
 </div>
 <div class="overlay" id="ov-find">
-  <div class="card"><h2>IDでコマをよぶ</h2>
-    <div class="id-row"><input id="in-id" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="英数字8文字"><button class="btn hot" id="btn-find-go">よぶ</button></div>
+  <div class="card"><h2 data-i="find_title">IDでコマをよぶ</h2>
+    <div class="id-row"><input id="in-id" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="英数字8文字" data-ip="id_ph"><button class="btn hot" id="btn-find-go" data-i="call">よぶ</button></div>
     <p class="err" id="find-err"></p><div id="my-ids" class="my-ids"></div>
-    <button class="btn sub wide" id="btn-find-close">もどる</button></div>
+    <button class="btn sub wide" id="btn-find-close" data-i="back">もどる</button></div>
 </div>
 <div class="overlay" id="ov-gal">
-  <div class="card gal"><h2>みんなのコマ</h2>
-    <div class="gal-tabs" id="gal-tabs"><button data-sort="t" class="on">新しい順</button><button data-sort="uses">人気順</button></div>
+  <div class="card gal"><h2 data-i="gal_title">みんなのコマ</h2>
+    <div class="gal-tabs" id="gal-tabs"><button data-sort="t" class="on" data-i="gal_new">新しい順</button><button data-sort="uses" data-i="gal_pop">人気順</button></div>
     <div class="gal-grid" id="gal-grid"></div><p class="hint" id="gal-msg"></p>
-    <button class="btn sub wide" id="gal-more" hidden>もっと見る</button><button class="btn sub wide" id="gal-close">もどる</button></div>
+    <button class="btn sub wide" id="gal-more" hidden data-i="gal_more">もっと見る</button><button class="btn sub wide" id="gal-close" data-i="back">もどる</button></div>
 </div>
 <div class="overlay" id="ov-char">
   <div class="card">
     <canvas id="cd-prev" class="mini-prev" width="140" height="140"></canvas>
     <h2 id="cd-name"></h2><p class="cd-meta" id="cd-meta"></p>
-    <button class="btn hot wide" id="cd-use">自分のコマにする</button>
-    <p class="label">CPUの相手にして戦う</p>
-    <div class="row3" id="cd-lv"><button class="btn lv" data-level="easy">よわい</button><button class="btn lv" data-level="normal">ふつう</button><button class="btn lv" data-level="hard">つよい</button></div>
-    <button class="btn sub wide" id="cd-keep">ライバル帳に入れる</button>
-    <div class="cd-small"><button class="mini" id="cd-copy">IDをコピー</button><button class="mini" id="cd-report">通報する</button><button class="mini warn" id="cd-del">このコマを消す</button></div>
-    <p class="err" id="cd-err"></p><button class="btn sub wide" id="cd-close">もどる</button>
+    <button class="btn hot wide" id="cd-use" data-i="cd_use">自分のコマにする</button>
+    <p class="label" data-i="cd_cpu">CPUの相手にして戦う</p>
+    <div class="row3" id="cd-lv"><button class="btn lv" data-level="easy" data-i="easy">よわい</button><button class="btn lv" data-level="normal" data-i="normal">ふつう</button><button class="btn lv" data-level="hard" data-i="hard">つよい</button></div>
+    <button class="btn sub wide" id="cd-keep" data-i="cd_keep">ライバル帳に入れる</button>
+    <div class="cd-small"><button class="mini" id="cd-copy" data-i="copy_id">IDをコピー</button><button class="mini" id="cd-report" data-i="report">通報する</button><button class="mini warn" id="cd-del" data-i="del_top">このコマを消す</button></div>
+    <p class="err" id="cd-err"></p><button class="btn sub wide" id="cd-close" data-i="back">もどる</button>
   </div>
 </div>
 <div class="overlay" id="ov-howto">
-  <div class="card howto"><h2>あそびかた</h2>
+  <div class="card howto"><h2 data-i="howto">あそびかた</h2>
     <ul>
-      <li><b>コマをつくる</b>：円の中に好きな形を描きます。描いた形が、そのまま当たり判定。真ん中の軸とつながった所だけがコマになります（円の3分の1以上ぬると完成できる）。「対称」で、回転対称に描けます。</li>
-      <li><b>ポイント配分</b>：攻撃・防御・持久・重さに、合計10ポイントを振り分け（ひとつは5まで）。形でも少し変わります（とげとげ＝攻撃、まるい＝防御・持久）。見た目は攻撃型、中身は持久型…というだましもアリ。</li>
-      <li><b>軸</b>：攻撃型はふちを走り回って、真ん中へつっこむ。持久型は真ん中でじっと長く回る。バランス型はその間。</li>
-      <li><b>ロック</b>：固いとバーストしにくいけれど、回転が落ちやすい。</li>
-      <li><b>回る向き</b>：同じ向きどうしは、はじきあう。逆向きどうしは、回転をうばいあう。</li>
-      <li><b>回し方</b>：左右にドラッグで向きを決めて、「3・2・1・まわせ！」に合わせて長押し→離す。ゲージは<b>90%くらい</b>がいちばん安定。満タンをこえると、ぐらつきます。早く離すとフライング、ぴったりだとボーナス。</li>
-      <li><b>スキル</b>：ぶつかるとゲージがたまり、満タンでボタンを押すと発動（1回戦に1回）。</li>
-      <li><b>会心の一撃</b>：コマがぶつかりそうになると、黄色い輪がちぢんでいきます。内側の輪と重なる瞬間（オレンジ色）にタップすると「会心！」で大きくはじき、バーストに近づけます。早すぎるとスキができます。連打では出ません。</li>
-      <li><b>バースト寸前</b>：ロックがゆるむと「ピキッ」と鳴って、コマがガタガタふるえます。</li>
-      <li><b>応援</b>：バトル中に画面をタップすると、スキルのゲージが少したまります（1回戦にためられる量には上限あり）。</li>
-      <li><b>スピン勝負</b>：ふたりとも回転が3割を切ると、残りの回転が％で出ます。最後まで目がはなせない！</li>
-      <li><b>決着</b>：バースト（ばらばらに外れる）2点、場外2点、先に止まる1点。<b>3点先取</b>で勝ち。</li>
-      <li><b>スタジアム</b>：戦う前に、ふたりが3つから2つ投票。票の多いところで戦う（同じならランダム）。スタンダードのふちには<b>加速レール</b>があり、攻撃型が乗ると一気に加速します。</li>
-      <li><b>ID</b>：完成したコマには8文字のIDがつきます。IDを入れれば、だれでもそのコマを使えます。</li>
-      <li><b>あいことば対戦</b>：「いまのコマで」か「らくがきバトル（60秒で描く＋20秒で設定）」。3人目からは観戦。</li>
+      <li data-ih="h1"><b>コマをつくる</b>：円の中に好きな形を描きます。描いた形が、そのまま当たり判定。真ん中の軸とつながった所だけがコマになります（円の3分の1以上ぬると完成できる）。「対称」で、回転対称に描けます。</li>
+      <li data-ih="h2"><b>ポイント配分</b>：攻撃・防御・持久・重さに、合計10ポイントを振り分け（ひとつは5まで）。形でも少し変わります（とげとげ＝攻撃、まるい＝防御・持久）。見た目は攻撃型、中身は持久型…というだましもアリ。</li>
+      <li data-ih="h3"><b>軸</b>：攻撃型はふちを走り回って、真ん中へつっこむ。持久型は真ん中でじっと長く回る。バランス型はその間。</li>
+      <li data-ih="h4"><b>ロック</b>：固いとバーストしにくいけれど、回転が落ちやすい。</li>
+      <li data-ih="h5"><b>回る向き</b>：同じ向きどうしは、はじきあう。逆向きどうしは、回転をうばいあう。</li>
+      <li data-ih="h6"><b>回し方</b>：左右にドラッグで向きを決めて、「3・2・1・まわせ！」に合わせて長押し→離す。ゲージは<b>90%くらい</b>がいちばん安定。満タンをこえると、ぐらつきます。早く離すとフライング、ぴったりだとボーナス。</li>
+      <li data-ih="h7"><b>スキル</b>：ぶつかるとゲージがたまり、満タンでボタンを押すと発動（1回戦に1回）。</li>
+      <li data-ih="h8"><b>会心の一撃</b>：コマがぶつかりそうになると、黄色い輪がちぢんでいきます。内側の輪と重なる瞬間（オレンジ色）にタップすると「会心！」で大きくはじき、バーストに近づけます。早すぎるとスキができます。連打では出ません。</li>
+      <li data-ih="h9"><b>バースト寸前</b>：ロックがゆるむと「ピキッ」と鳴って、コマがガタガタふるえます。</li>
+      <li data-ih="h10"><b>応援</b>：バトル中に画面をタップすると、スキルのゲージが少したまります（1回戦にためられる量には上限あり）。</li>
+      <li data-ih="h11"><b>スピン勝負</b>：ふたりとも回転が3割を切ると、残りの回転が％で出ます。最後まで目がはなせない！</li>
+      <li data-ih="h12"><b>決着</b>：バースト（ばらばらに外れる）2点、場外2点、先に止まる1点。<b>3点先取</b>で勝ち。</li>
+      <li data-ih="h13"><b>スタジアム</b>：戦う前に、ふたりが3つから2つ投票。票の多いところで戦う（同じならランダム）。スタンダードのふちには<b>加速レール</b>があり、攻撃型が乗ると一気に加速します。</li>
+      <li data-ih="h14"><b>ID</b>：完成したコマには8文字のIDがつきます。IDを入れれば、だれでもそのコマを使えます。</li>
+      <li data-ih="h15"><b>あいことば対戦</b>：「いまのコマで」か「らくがきバトル（60秒で描く＋20秒で設定）」。3人目からは観戦。</li>
     </ul>
-    <button class="btn hot" id="btn-howto-close">とじる</button></div>
+    <button class="btn hot" id="btn-howto-close" data-i="close">とじる</button></div>
 </div>
 <div id="toast" class="toast"></div>
 
+<script src="js/i18n.js"></script>
 <script src="lib/three.min.js"></script>
 <script src="js/top.js"></script>
 <script src="js/sim.js"></script>

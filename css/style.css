@@ -231,3 +231,16 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .replay-tag[hidden] { display: none; } @keyframes rp { 50% { opacity: .55; } }
 .pop.crit { font-size: 64px; color: #fff36b; text-shadow: 0 4px 0 #000, 0 0 30px rgba(255,200,40,1); }
 .pop.miss { font-size: 30px; color: #ff6b7a; } .pop.crk { font-size: 22px; color: #ffb4b4; text-shadow: 0 2px 0 #000, 0 0 10px rgba(255,40,40,.9); }
+
+/* ことばの切りかえ */
+.langs{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:2px}
+.langs button{font:800 13px 'M PLUS Rounded 1c',sans-serif;background:transparent;color:var(--dim);border:1.5px solid var(--line);border-radius:999px;padding:4px 12px;cursor:pointer}
+.langs button[aria-pressed="true"]{background:var(--hot);color:#1a0d00;border-color:var(--hot)}
+/* 韓国語は題字・大きい文字に Black Han Sans */
+html[data-lang="ko"]{--display:"Black Han Sans","Dela Gothic One",sans-serif}
+/* 中国語：M PLUS にない字は丸ゴシックの Chiron GoRound TC で */
+html[data-lang="zh"] body, html[data-lang="zh"] .big small{font-family:"M PLUS Rounded 1c","Chiron GoRound TC",sans-serif}
+html[data-lang="zh"]{--display:"Dela Gothic One","Chiron GoRound TC",sans-serif}
+html[data-lang="ko"] body, html[data-lang="ko"] .big small, html[data-lang="ko"] .langs button{font-family:"Jua","M PLUS Rounded 1c",sans-serif;font-weight:400}
+html[data-lang="ko"] .btn, html[data-lang="ko"] .mini, html[data-lang="ko"] input{font-weight:400}
+html[data-lang="en"] .logo{font-size:min(60px,13vw)}

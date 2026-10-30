@@ -18,7 +18,7 @@
   const DRAW_MS = 60000, SETUP_MS = 20000;
   class Room {
     constructor(db, code, name, topStr, cb, want) {
-      this.db = db; this.code = clean(code); this.name = (String(name || '').trim().slice(0, 8)) || 'ななし';
+      this.db = db; this.code = clean(code); this.name = (String(name || '').trim().slice(0, 8)) || I18N.t('noname');
       this.want = want === 'raku' ? 'raku' : 'normal'; this.mode = this.want; this.topStr = topStr; this.cb = cb || {};
       this.id = uid(); this.slot = -1; this.watching = false; this.players = {}; this.ready = {}; this.chars = {}; this.rch = {};
       this.game = null; this.round = 0; this.subs = []; this.evSubs = []; this.offset = 0; this.left = false;
@@ -28,7 +28,7 @@
     now() { return Date.now() + this.offset; }
     on(ref, ev, fn) { ref.on(ev, fn); this.subs.push([ref, ev, fn]); }
     async join() {
-      if (!this.code) throw new Error('あいことばを入れてください');
+      if (!this.code) throw new Error(I18N.t('err_code_short'));
       this.on(this.db.ref('.info/serverTimeOffset'), 'value', s => { this.offset = s.val() || 0; });
       for (const s of [0, 1]) {
         const res = await this.root.child('players/' + s).transaction(cur => (cur ? undefined : { id: this.id, name: this.name }));
@@ -36,7 +36,7 @@
       }
       if (this.slot < 0) {
         const w = (await this.root.child('watchers').once('value')).val() || {};
-        if (Object.keys(w).length >= 10) throw new Error('この部屋は観戦の人でいっぱいです（10人まで）');
+        if (Object.keys(w).length >= 10) throw new Error(I18N.t('room_full'));
         this.watching = true; const me = this.root.child('watchers/' + this.id); await me.set({ name: this.name }); me.onDisconnect().remove();
         this.mode = (await this.root.child('mode').once('value')).val() === 'raku' ? 'raku' : 'normal';
       } else {

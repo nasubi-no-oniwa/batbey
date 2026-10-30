@@ -3,12 +3,12 @@
 // =============================================
 (function () {
   const $ = id => document.getElementById(id);
+  const T = I18N.t;
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id)); }
   BB.toast = t => { const el = $('toast'); el.textContent = t; el.classList.add('show'); clearTimeout(BB.toast.tm); BB.toast.tm = setTimeout(() => el.classList.remove('show'), 1900); };
   let room = null;
   BB.now = () => (room ? room.now() : Date.now());
-  const SK = BB.T.SKILLS;
 
   // ---------- 音（すべて合成） ----------
   let ac = null, bus = null, nbuf = null, master = null, muted = (() => { try { return localStorage.getItem('bb_mute') === '1'; } catch (e) { return false; } })();
@@ -73,8 +73,8 @@
       mode(m) { md = m; }, stop() { on = false; clearInterval(tm); }
     };
   })();
-  $('btn-snd').onclick = () => { muted = !muted; try { localStorage.setItem('bb_mute', muted ? '1' : '0'); } catch (e) {} if (master) master.gain.value = muted ? 0 : 1; $('snd-name').textContent = muted ? 'なし' : 'あり'; };
-  $('snd-name').textContent = muted ? 'なし' : 'あり';
+  $('btn-snd').onclick = () => { muted = !muted; try { localStorage.setItem('bb_mute', muted ? '1' : '0'); } catch (e) {} if (master) master.gain.value = muted ? 0 : 1; $('snd-name').textContent = T(muted ? 'snd_off' : 'snd_on'); };
+  $('snd-name').textContent = T(muted ? 'snd_off' : 'snd_on');
   // 回転の音（自分のコマ）
   let hum = null;
   function humSet(w) {
@@ -89,31 +89,32 @@
   // ---------- 3D ----------
   const R = new BB.Render($('view'));
   addEventListener('resize', () => R.resize());
-  const QN = { auto: 'おまかせ', hi: 'きれい', lo: 'かるい' };
-  $('q-name').textContent = QN[R.quality] || 'おまかせ';
-  $('btn-q').onclick = () => { const order = ['auto', 'hi', 'lo'], q = order[(order.indexOf(R.quality) + 1) % 3]; R.setQuality(q); $('q-name').textContent = QN[q]; BB.toast('画質：' + QN[q] + '（切りかえます）'); setTimeout(() => location.reload(), 700); };
+  const QN = q => T('q_' + (q === 'hi' || q === 'lo' ? q : 'auto'));
+  $('q-name').textContent = QN(R.quality);
+  $('btn-q').onclick = () => { const order = ['auto', 'hi', 'lo'], q = order[(order.indexOf(R.quality) + 1) % 3]; R.setQuality(q); $('q-name').textContent = QN(q); BB.toast(T('q_toast', { q: QN(q) })); setTimeout(() => location.reload(), 700); };
 
   // ---------- 自分のコマ ----------
   let myTop = null, level = 'normal';
   function refreshTitle() {
     BB.drawTopIcon(myTop, $('t-prev'));
-    $('t-name').textContent = myTop ? (myTop.name || 'なまえなし') : 'まだコマがありません';
-    $('btn-make').textContent = myTop ? 'コマをなおす' : 'コマをつくる';
-    $('t-id').innerHTML = myTop && myTop.id ? 'ID：' + myTop.id + '<button id="t-id-copy">コピー</button>' : '';
+    $('t-name').textContent = myTop ? (myTop.name || T('noname_top')) : T('no_top');
+    $('btn-make').textContent = myTop ? T('edit_top') : T('make_top');
+    $('t-id').innerHTML = myTop && myTop.id ? T('id_c') + myTop.id + '<button id="t-id-copy">' + T('copy') + '</button>' : '';
     const cb = $('t-id-copy'); if (cb) cb.onclick = () => copyText(myTop.id, cb);
     if (myTop && myTop.id) checkMyId(myTop.id);
     attract();
   }
-  async function copyText(t, b) { try { await navigator.clipboard.writeText(t); if (b) { const o = b.textContent; b.textContent = 'コピーしました'; setTimeout(() => { b.textContent = o; }, 1500); } } catch (e) { BB.toast('ID：' + t); } }
+  async function copyText(t, b) { try { await navigator.clipboard.writeText(t); if (b) { const o = b.textContent; b.textContent = T('copied2'); setTimeout(() => { b.textContent = o; }, 1500); } } catch (e) { BB.toast(T('id_c') + t); } }
   const idChecked = {};
   async function checkMyId(id) {
     if (!(id in idChecked)) idChecked[id] = await BB.Store.exists(id);
     if (idChecked[id] !== false || !myTop || myTop.id !== id) return;
     const msg = await BB.Store.goneMsg(id).catch(() => '');
-    $('t-id').innerHTML = '<s>ID：' + id + '</s><br><span class="gone">' + esc(msg.replace(/（.*）/, '')) + '</span><button id="t-id-new">もう一度IDをもらう</button>';
+    $('t-id').innerHTML = '<s>' + T('id_c') + id + '</s><br><span class="gone">' + esc(msg.replace(/（.*）|\s*\(.*\)/, '')) + '</span><button id="t-id-new">' + T('id_again') + '</button>';
     $('t-id-new').onclick = () => { myTop.id = ''; BB.saveTop(myTop); openSave(myTop, { done: refreshTitle }); };
   }
   BB.loadTop().then(t => { myTop = t; refreshTitle(); });
+  document.addEventListener('langchange', () => { $('q-name').textContent = QN(R.quality); $('snd-name').textContent = T(muted ? 'snd_off' : 'snd_on'); if (mode === 'title') { BB.drawTopIcon(myTop, $('t-prev')); $('t-name').textContent = myTop ? (myTop.name || T('noname_top')) : T('no_top'); $('btn-make').textContent = myTop ? T('edit_top') : T('make_top'); } });
 
   // コマをつくる：描く → 設定 → （ID）
   function makeTop(after, opt = {}) {
@@ -138,13 +139,13 @@
   $('btn-howto-close').onclick = () => $('ov-howto').classList.remove('show');
   document.querySelectorAll('#title .btn.lv').forEach(b => b.addEventListener('click', () => {
     snd.pick(); level = b.dataset.level;
-    if (!myTop) { BB.toast('まずはコマをつくろう！'); makeTop(() => startCpu()); return; }
+    if (!myTop) { BB.toast(T('make_first')); makeTop(() => startCpu()); return; }
     startCpu();
   }));
 
   // ---------- 試合 ----------
   // V：画面に出す試合のようす（CPU戦・0番の人は M から、1番の人・観戦は届いたようすから）
-  let mode = 'title', mine = 0, M = null, V = null, cpu = null, cpuPlan = null, tops = [null, null], ans = [null, null], names = ['あなた', 'CPU'], lastEv = 0, sendT = 0;
+  let mode = 'title', mine = 0, M = null, V = null, cpu = null, cpuPlan = null, tops = [null, null], ans = [null, null], names = [T('you'), 'CPU'], lastEv = 0, sendT = 0;
   let aim = 0, holdT = null, power = 0, released = false, voted = false, myVotes = [], lastAimSent = 0, shake = 0, slow = 0, freeze = 0, rakuTop = null, punch = null, finalOn = false, heartT = 0, cpuCheerT = 0, tapN = 0, tapSendT = 0, tapTimes = [];
   function setTops(ts, nm) {
     for (const i of [0, 1]) { if (tops[i] && tops[i] !== myTop && tops[i] !== ts[i]) BB.freeTop(tops[i]); }
@@ -170,9 +171,9 @@
     leaveRoom();
     const pool = BB.Pool.list(); let s = forced || null;
     const k = Math.floor(BB.rand() * (pool.length + 2));
-    if (!s && k >= 2) { try { s = await BB.unpackTop(pool[k - 2].s); s.name = s.name || 'ライバル'; } catch (e) {} }
+    if (!s && k >= 2) { try { s = await BB.unpackTop(pool[k - 2].s); s.name = s.name || T('rival'); } catch (e) {} }
     if (!s) { const key = k === 1 ? ['easy', 'normal', 'hard'][Math.floor(BB.rand() * 3)] : level; s = BB.samples(key)[key]; }
-    setTops([myTop, s], [myTop.name || 'あなた', (s.name || 'ななし') + '（' + { easy: 'よわい', normal: 'ふつう', hard: 'つよい' }[level] + '）']);
+    setTops([myTop, s], [myTop.name || T('you'), T('cpu_name', { name: s.name || T('noname'), lv: T(level) })]);
     if (myTop.id) BB.Store.touch(myTop.id);
     beginMatch({ mode: 'cpu', mine: 0, host: true });
   }
@@ -188,9 +189,9 @@
   }
   function openVote() {
     voted = false; myVotes = [];
-    $('vote-list').innerHTML = BB.MATCH.KEYS.map(k => `<button data-k="${k}"><canvas width="96" height="96"></canvas><b>${BB.STAGES[k].name}</b><small>${BB.STAGES[k].sub}</small><span class="votes"></span></button>`).join('');
+    $('vote-list').innerHTML = BB.MATCH.KEYS.map(k => `<button data-k="${k}"><canvas width="96" height="96"></canvas><b>${T('stg_' + k)}</b><small>${T('stgd_' + k)}</small><span class="votes"></span></button>`).join('');
     $('vote-list').querySelectorAll('button').forEach(b => stageIcon(b.querySelector('canvas'), b.dataset.k));
-    $('btn-vote').disabled = true; $('btn-vote').hidden = mode === 'watch'; $('vote-msg').textContent = mode === 'watch' ? 'ふたりが投票しています…' : '';
+    $('btn-vote').disabled = true; $('btn-vote').hidden = mode === 'watch'; $('vote-msg').textContent = mode === 'watch' ? T('vote_watch') : '';
     $('ov-vote').classList.add('show');
     R.buildStage('std'); for (const i of [0, 1]) R.tops[i] && (R.tops[i].root.visible = false);
   }
@@ -204,12 +205,12 @@
   $('btn-vote').onclick = () => {
     if (myVotes.length !== 2 || voted) return; voted = true; snd.pick();
     if (M) M.vote(mine, myVotes.slice()); else room && room.sendCmd({ k: 'vote', v: myVotes.slice() });
-    $('btn-vote').disabled = true; $('vote-msg').textContent = 'あいての投票を待っています…';
+    $('btn-vote').disabled = true; $('vote-msg').textContent = T('vote_wait');
   };
   function showStagePick(e) {
     const t = e.tally || {};
     $('vote-list').querySelectorAll('button').forEach(b => { b.querySelector('.votes').textContent = '★'.repeat(t[b.dataset.k] || 0); b.classList.toggle('win', b.dataset.k === e.stage); });
-    $('vote-msg').textContent = BB.STAGES[e.stage].name + (e.tie ? '（同じ票だったので、ランダム）' : '') + 'で戦います！';
+    $('vote-msg').textContent = T(e.tie ? 'stage_tie' : 'stage_go', { s: T('stg_' + e.stage) });
     $('btn-vote').hidden = true;
     setTimeout(() => { $('ov-vote').classList.remove('show'); $('btn-vote').hidden = false; }, 1900);
     R.buildStage(e.stage); for (const i of [0, 1]) if (R.tops[i]) R.tops[i].root.visible = true;
@@ -237,8 +238,8 @@
   addEventListener('keydown', e => { if (e.code === 'Space' && !e.repeat) { if (V && V.ph === 'battle') useSkill(); else hold.dispatchEvent(new PointerEvent('pointerdown')); } });
   addEventListener('keyup', e => { if (e.code === 'Space') rel(); });
   function judgeMsg(t, p) {
-    const msg = t === 'early' ? ['フライング！', 'red'] : t === 'perfect' ? ['ナイス！', 'cyan'] : t === 'late' ? ['おそい…', 'red'] : p > 1.02 ? ['強すぎ！ぐらつく', 'red'] : p < 0.5 ? ['よわい…', ''] : ['いい感じ', 'cyan'];
-    big(msg[0], msg[1], 900);
+    const msg = t === 'early' ? ['j_early', 'red'] : t === 'perfect' ? ['j_perfect', 'cyan'] : t === 'late' ? ['j_late', 'red'] : p > 1.02 ? ['j_over', 'red'] : p < 0.5 ? ['j_weak', ''] : ['j_good', 'cyan'];
+    big(T(msg[0]), msg[1], 900);
   }
   function useSkill() { if (!V || V.ph !== 'battle' || mode === 'watch') return; if (M) M.skill(mine); else room && room.sendCmd({ k: 'skill' }); }
   $('b-skill').onclick = useSkill;
@@ -247,13 +248,13 @@
   let bigTm = 0;
   function big(t, cls, ms) { const el = $('big'); el.innerHTML = t; el.className = 'big show ' + (cls || ''); clearTimeout(bigTm); if (ms) bigTm = setTimeout(() => el.classList.remove('show'), ms); }
   // 起きたことの表示と音
-  const WHY = { burst: 'バースト！', out: '場外！', stop: 'スピンフィニッシュ', draw: 'ひきわけ' };
+  const WHY = w => T('why_' + w);
   function handle(e) {
     const side = i => (i === mine ? 'cyan' : 'red'), nm = i => names[i] || '？';
     if (e.type === 'stage') showStagePick(e);
     else if (e.type === 'round') { big('ROUND ' + e.round, '', 1300); $('h-round').textContent = 'ROUND ' + e.round; released = false; power = 0; aim = 0; holdT = null; V.cn = 0; hold.classList.remove('on'); stopReplay(); snaps = []; R.clearFx(); for (const i of [0, 1]) { if (R.tops[i]) { R.buildTop(i, tops[i], ans[i]); } } humStop(); setFinal(false); comboShow(0); }
     else if (e.type === 'count') { }
-    else if (e.type === 'go') { big('まわせ！', '', 800); snd.go(); bgm.start(); leader = -1; callAt = 0; }
+    else if (e.type === 'go') { big(T('go'), '', 800); snd.go(); bgm.start(); leader = -1; callAt = 0; }
     else if (e.type === 'land') { snd.land(); shake = Math.max(shake, 0.14); }
     else if (e.type === 'launch') { }
     else if (e.type === 'hit') {
@@ -263,26 +264,26 @@
       if (tier >= 3) snd.crowd(tier >= 4 ? 1 : 0.5);
       if (tier >= 3) { punch = { x: e.x, z: e.y, t: tier >= 4 ? 0.55 : 0.32, T: tier >= 4 ? 0.55 : 0.32, k: tier >= 4 ? 1 : 0.6 }; freeze = Math.max(freeze, tier >= 4 ? 0.11 : 0.06); }
       if (tier >= 4) { flash(); buzz(70); slow = Math.max(slow, 0.75); } else buzz(tier === 3 ? 30 : tier === 2 ? 12 : 5);
-      if (tier >= 2) popAt(e.x, y + 0.12, e.y, ['', '', 'ガキッ！', 'ガキーン！', 'ドゴォッ！'][tier], 't' + tier);
+      if (tier >= 2) popAt(e.x, y + 0.12, e.y, T('hit' + tier), 't' + tier);
       comboShow(e.combo || 0);
     }
-    else if (e.type === 'grind') { const y = BB.surfY(V.st || 'std', Math.hypot(e.x, e.y)) + 0.06; R.grind(e.x, y, e.y); snd.grind(); shake = Math.max(shake, 0.05); if (Math.random() < 0.18) popAt(e.x, y + 0.1, e.y, 'ギャリギャリ', 'grd'); }
+    else if (e.type === 'grind') { const y = BB.surfY(V.st || 'std', Math.hypot(e.x, e.y)) + 0.06; R.grind(e.x, y, e.y); snd.grind(); shake = Math.max(shake, 0.05); if (Math.random() < 0.18) popAt(e.x, y + 0.1, e.y, T('grind'), 'grd'); }
     else if (e.type === 'rail') { snd.rail(); R.railGlow = 1; }
     else if (e.type === 'wall') { snd.wall(e.s || 1); shake = Math.max(shake, 0.1); }
-    else if (e.type === 'final') { setFinal(true); snd.final(); bgm.mode('final'); call('スピン勝負！ 最後まで粘れ！', 'red', true); }
+    else if (e.type === 'final') { setFinal(true); snd.final(); bgm.mode('final'); call(T('final_call'), 'red', true); }
     else if (e.type === 'crit') {
       const y = BB.surfY(V.st || 'std', Math.hypot(e.x, e.y)) + 0.07;
       R.spark(e.x, y, e.y, 4, true, 4); snd.crit(); snd.crowd(1.2); flash(); buzz(80); shake = Math.max(shake, 0.85); freeze = Math.max(freeze, 0.13); slow = Math.max(slow, 0.5);
       punch = { x: e.x, z: e.y, t: 0.6, T: 0.6, k: 1.15 };
-      popAt(e.x, y + 0.2, e.y, '会心！', 'crit'); call((e.i === mine && mode !== 'watch' ? 'ナイス！' : esc(nm(e.i)) + 'の') + '会心の一撃！', side(e.i), true);
+      popAt(e.x, y + 0.2, e.y, T('crit_pop'), 'crit'); call(e.i === mine && mode !== 'watch' ? T('crit_me') : T('crit_of', { name: esc(nm(e.i)) }), side(e.i), true);
     }
-    else if (e.type === 'miss') { if (e.i === mine && mode !== 'watch') { snd.miss(); popAt(e.x, 0.15, e.y, 'スキ！', 'miss'); call('はやすぎた！ スキができた', 'red'); } }
+    else if (e.type === 'miss') { if (e.i === mine && mode !== 'watch') { snd.miss(); popAt(e.x, 0.15, e.y, T('miss_pop'), 'miss'); call(T('miss_call'), 'red'); } }
     else if (e.type === 'crack') {
-      snd.crack(e.lv); popAt(e.x, 0.12, e.y, e.lv >= 3 ? 'ピキピキッ！' : 'ピキッ', 'crk');
-      if (e.lv >= 2) call(e.i === mine && mode !== 'watch' ? 'あぶない！ バースト寸前！' : esc(nm(e.i)) + 'がバースト寸前！ あと一押し！', e.i === mine ? 'red' : 'cyan', true);
+      snd.crack(e.lv); popAt(e.x, 0.12, e.y, T(e.lv >= 3 ? 'crack3' : 'crack1'), 'crk');
+      if (e.lv >= 2) call(e.i === mine && mode !== 'watch' ? T('danger_me') : T('danger_of', { name: esc(nm(e.i)) }), e.i === mine ? 'red' : 'cyan', true);
     }
-    else if (e.type === 'skill') { snd.skill(); big(SK[e.skill][0] + '！<small>' + esc(nm(e.i)) + '</small>', side(e.i), 1100); }
-    else if (e.type === 'refl') big('反射！', side(e.i), 900);
+    else if (e.type === 'skill') { snd.skill(); big(T('sk_' + e.skill) + T('excl') + '<small>' + esc(nm(e.i)) + '</small>', side(e.i), 1100); }
+    else if (e.type === 'refl') big(T('sk_refl') + T('excl'), side(e.i), 900);
     else if (e.type === 'burst') { snd.burst(); snd.crowd(1.5); shake = 0.9; slow = 1.2; freeze = 0.12; flash(); buzz(140); setFinal(false); }
     else if (e.type === 'out') { snd.out(); snd.crowd(1.3); shake = 0.5; slow = 0.9; freeze = 0.1; setFinal(false); }
     else if (e.type === 'stop') { snd.stop(); setFinal(false); }
@@ -290,7 +291,7 @@
       humStop(); setFinal(false); comboShow(0); bgm.stop(); R.critRing(false);
       if (e.why === 'burst' || e.why === 'out') { const buf = snaps.slice(); clearTimeout(replayTm); replayTm = setTimeout(() => startReplay(buf, e.winner), 1300); }
       const w = e.winner, me = w === mine;
-      big(WHY[e.why] + (w >= 0 ? '<small>' + esc(nm(w)) + ' ＋' + e.pts + '点</small>' : ''), w < 0 ? '' : mode === 'watch' ? 'cyan' : me ? 'cyan' : 'red', 2200);
+      big(WHY(e.why) + (w >= 0 ? '<small>' + T('plus_pts', { name: esc(nm(w)), n: e.pts }) + '</small>' : ''), w < 0 ? '' : mode === 'watch' ? 'cyan' : me ? 'cyan' : 'red', 2200);
       if (w >= 0 && mode !== 'watch') (me ? snd.win : snd.lose)();
     }
     else if (e.type === 'over') { bgm.stop(); finish(e.winner, e.score); }
@@ -311,7 +312,7 @@
   function comboShow(n) {
     const el = $('combo'); clearTimeout(comboTm);
     if (n < 3) { if (!n) el.classList.remove('show'); else comboTm = setTimeout(() => el.classList.remove('show'), 1100); return; }
-    el.innerHTML = n + '<small>連打！</small>'; el.classList.add('show'); el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
+    el.innerHTML = n + '<small>' + T('combo') + '</small>'; el.classList.add('show'); el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
     comboTm = setTimeout(() => el.classList.remove('show'), 1100);
   }
   // スピン勝負（ふたりとも回転が3割を切った）
@@ -366,7 +367,7 @@
     const me = V.battle && V.battle.f[mine]; if (!me || me.state !== 'spin') return;
     const n = performance.now(); tapTimes = tapTimes.filter(t => n - t < 1000); if (tapTimes.length >= 8) return; tapTimes.push(n);
     const r = document.createElement('div'); r.className = 'tap-ring'; r.style.left = e.clientX + 'px'; r.style.top = e.clientY + 'px'; $('fx-layer').appendChild(r); setTimeout(() => r.remove(), 460);
-    if (me.gauge < 1 && !me.used) { const p = document.createElement('div'); p.className = 'tap-plus'; p.textContent = '+応援'; p.style.left = e.clientX + 'px'; p.style.top = (e.clientY - 30) + 'px'; $('fx-layer').appendChild(p); setTimeout(() => p.remove(), 620); }
+    if (me.gauge < 1 && !me.used) { const p = document.createElement('div'); p.className = 'tap-plus'; p.textContent = T('cheer_plus'); p.style.left = e.clientX + 'px'; p.style.top = (e.clientY - 30) + 'px'; $('fx-layer').appendChild(p); setTimeout(() => p.remove(), 620); }
     snd.tap(); buzz(4);
     if (nearNow()) { if (M) M.crit(mine, null); else if (room) room.sendCmd({ k: 'cr', t: Math.round(localBt() * 1000) / 1000 }); }
     if (M) M.cheer(mine, 1, BB.now()); else tapN++;
@@ -381,7 +382,7 @@
     let dt = slow > 0 ? rdt * 0.32 : rdt; if (slow > 0) slow -= rdt;
     if (freeze > 0) { freeze -= rdt; dt = 0; }
     // おまかせ画質：重ければ次から「かるい」
-    if (R.quality === 'auto' && mode !== 'title') { fpsN++; fpsT += rdt; if (fpsN === 150) { if (fpsT / fpsN > 0.045) { R.setQuality('lo'); BB.toast('動きが重いので、次から画質を「かるい」にします'); } } }
+    if (R.quality === 'auto' && mode !== 'title') { fpsN++; fpsT += rdt; if (fpsN === 150) { if (fpsT / fpsN > 0.045) { R.setQuality('lo'); BB.toast(T('q_auto_low')); } } }
     if (mode === 'title') { if (!$('title').classList.contains('active')) return; attractStep(rdt); R.fx(rdt); camOrbit(now / 1000, rdt); R.render(); return; }
     if (!V) { R.render(); return; }
     // 計算（CPU戦・0番の人）
@@ -419,7 +420,7 @@
     const sb = $('b-skill'), me = V.battle && V.battle.f[mine];
     sb.hidden = !(ph === 'battle' && me && me.state !== 'wait') || mode === 'watch';
     $('tap-hint').hidden = sb.hidden || !me || me.state !== 'spin' || (V.battle.t || 0) > 12;
-    if (!sb.hidden) { const gq = me.used ? 0 : me.gauge; $('sk-ring').style.strokeDashoffset = 276.5 * (1 - gq); sb.classList.toggle('ready', !me.used && gq >= 1); sb.classList.toggle('used', !!me.used); $('sk-name').textContent = SK[tops[mine].skill][0]; }
+    if (!sb.hidden) { const gq = me.used ? 0 : me.gauge; $('sk-ring').style.strokeDashoffset = 276.5 * (1 - gq); sb.classList.toggle('ready', !me.used && gq >= 1); sb.classList.toggle('used', !!me.used); $('sk-name').textContent = T('sk_' + tops[mine].skill); }
     // コマ
     const t = now / 1000;
     if (replay) { stepReplay(rdt, t); R.fx(dt); R.render(); return; }
@@ -432,7 +433,7 @@
       // 実況：どちらが押しているか
       if (ph === 'battle' && B.t > 4 && B.f[0].state === 'spin' && B.f[1].state === 'spin') {
         const u0 = Math.abs(B.f[0].w) / BB.W0, u1 = Math.abs(B.f[1].w) / BB.W0, ld = u0 - u1 > 0.12 ? 0 : u1 - u0 > 0.12 ? 1 : -1;
-        if (ld >= 0 && ld !== leader) { leader = ld; call(esc(names[ld] || '？') + 'が押している！', mode === 'watch' ? '' : ld === mine ? 'cyan' : 'red'); }
+        if (ld >= 0 && ld !== leader) { leader = ld; call(T('pushing', { name: esc(names[ld] || '？') }), mode === 'watch' ? '' : ld === mine ? 'cyan' : 'red'); }
       }
       for (const i of [0, 1]) {
         const f = B.f[i];
@@ -532,11 +533,11 @@
     humStop();
     setTimeout(() => {
       const watch = mode === 'watch', me = w === mine;
-      $('res-title').textContent = watch ? (names[w] || '？') + 'のかち！' : me ? 'かち！' : 'まけ…'; $('res-title').className = me || watch ? 'win' : 'lose';
+      $('res-title').textContent = watch ? T('win_of', { name: names[w] || '？' }) : me ? T('win') : T('lose'); $('res-title').className = me || watch ? 'win' : 'lose';
       $('res-sub').textContent = `${names[0]} ${score[0]} － ${score[1]} ${names[1]}`;
       for (const i of [0, 1]) { BB.drawTopIcon(tops[i], $('r' + i)); $('rn' + i).textContent = names[i] || '？'; }
-      $('btn-keep').disabled = false; $('btn-keep').textContent = watch ? '2つともライバル帳に入れる' : '相手のコマをライバル帳に入れる';
-      $('btn-again').hidden = watch; $('btn-again').disabled = false; $('again-msg').textContent = watch ? 'つぎの試合が始まると、自動で見られます' : '';
+      $('btn-keep').disabled = false; $('btn-keep').textContent = watch ? T('keep_both') : T('keep_one');
+      $('btn-again').hidden = watch; $('btn-again').disabled = false; $('again-msg').textContent = watch ? T('auto_watch') : '';
       $('btn-reedit').hidden = mode !== 'cpu'; $('btn-savedraw').hidden = !(rakuTop && mode === 'online'); $('btn-savedraw').disabled = false;
       $('ov-result').classList.add('show');
       me || watch ? snd.win() : snd.lose();
@@ -544,11 +545,11 @@
   }
   $('btn-keep').onclick = () => {
     let ok = BB.Pool.add(tops[1 - mine], 'rival'); if (mode === 'watch') ok = BB.Pool.add(tops[mine], 'rival') && ok;
-    $('btn-keep').disabled = true; $('btn-keep').textContent = ok ? 'ライバル帳に入れました（CPUの相手に出てきます）' : '保存できませんでした';
+    $('btn-keep').disabled = true; $('btn-keep').textContent = ok ? T('keep_done') : T('save_fail');
   };
   $('btn-again').onclick = () => {
     if (mode === 'cpu') { $('ov-result').classList.remove('show'); return startCpu(); }
-    if (room) { room.rematch(); $('btn-again').disabled = true; $('again-msg').textContent = 'あいての「もう一回」を待っています…'; }
+    if (room) { room.rematch(); $('btn-again').disabled = true; $('again-msg').textContent = T('wait_rematch'); }
   };
   $('btn-reedit').onclick = () => { $('ov-result').classList.remove('show'); endBattle(); makeTop(() => startCpu()); };
   function endBattle() { stopReplay(); bgm.stop(); R.critRing(false); M = null; V = null; cpu = null; cpuPlan = null; humStop(); R.clearFx(); arrow.visible = false; for (const i of [0, 1]) R.dropTop(i); }
@@ -567,43 +568,43 @@
   function openOnline(code) { lobby(false); $('online-err').textContent = ''; try { $('in-name').value = localStorage.getItem('bb-name') || (myTop && myTop.name) || ''; } catch (e) {} if (code) $('in-code').value = code; $('ov-online').classList.add('show'); }
   $('btn-online').onclick = () => { snd.pick(); openOnline(); };
   $('btn-online-close').onclick = () => { leaveRoom(); $('ov-online').classList.remove('show'); };
-  $('btn-copy').onclick = async () => { const url = location.origin + location.pathname + '?room=' + encodeURIComponent(room ? room.code : ''); try { await navigator.clipboard.writeText(url); $('btn-copy').textContent = 'コピーしました！'; } catch (e) { prompt('このリンクを送ってください', url); } setTimeout(() => { $('btn-copy').textContent = 'さそうリンクをコピー'; }, 2000); };
+  $('btn-copy').onclick = async () => { const url = location.origin + location.pathname + '?room=' + encodeURIComponent(room ? room.code : ''); try { await navigator.clipboard.writeText(url); $('btn-copy').textContent = T('copied'); } catch (e) { prompt(T('send_link'), url); } setTimeout(() => { $('btn-copy').textContent = T('copy_link'); }, 2000); };
   $('btn-join').onclick = joinOnline;
-  const NOTOP = 'この部屋は「いまのコマで」対戦です。先にコマをつくるか、IDでよんでね';
+  const NOTOP = () => T('no_top_room');
   async function joinOnline() {
-    const code = BB.cleanCode($('in-code').value), name = $('in-name').value.trim().slice(0, 8) || 'ななし';
-    if (!code) { $('online-err').textContent = 'あいことばを入れてください'; return; }
+    const code = BB.cleanCode($('in-code').value), name = $('in-name').value.trim().slice(0, 8) || T('noname');
+    if (!code) { $('online-err').textContent = T('err_code_short'); return; }
     try { localStorage.setItem('bb-name', name); } catch (e) {}
-    $('online-err').textContent = ''; $('btn-join').disabled = true; $('btn-join').textContent = 'つないでいます…';
+    $('online-err').textContent = ''; $('btn-join').disabled = true; $('btn-join').textContent = T('connecting');
     try {
       const db = await BB.getDb(); leaveRoom();
       const r = new BB.Room(db, code, name, myTop ? BB.packTop(myTop, 0.6) : null, {
-        onPeople: p => { if (room !== r) return; if (!r.watching && !p.names[1 - r.slot]) $('wait-msg').textContent = 'あいてを待っています…'; },
-        onMode: m => { if (room !== r) return; showMode(r); if (m === 'normal' && !myTop && !r.watching) { leaveRoom(); lobby(false); $('online-err').textContent = NOTOP; } },
-        onWatchers: n => { if (room !== r) return; $('watchers').hidden = !n; $('watchers').textContent = '👀 ' + n + '人'; },
+        onPeople: p => { if (room !== r) return; if (!r.watching && !p.names[1 - r.slot]) $('wait-msg').textContent = T('waiting'); },
+        onMode: m => { if (room !== r) return; showMode(r); if (m === 'normal' && !myTop && !r.watching) { leaveRoom(); lobby(false); $('online-err').textContent = NOTOP(); } },
+        onWatchers: n => { if (room !== r) return; $('watchers').hidden = !n; $('watchers').textContent = T('watch_n', { n }); },
         onDraw: g => { if (room === r) startDraw(g); },
         onStart: g => { if (room === r) onlineStart(g); },
         onState: s => { if (room === r) onState(s); },
         onCmd: c => { if (room !== r || !M || !c) return; if (c.k === 'vote') M.vote(1, c.v); else if (c.k === 'aim') M.setAim(1, c.a); else if (c.k === 'rel') M.release(1, { power: c.p, at: c.at }); else if (c.k === 'skill') M.skill(1); else if (c.k === 'ch') M.cheer(1, +c.n || 0, BB.now()); else if (c.k === 'cr') M.crit(1, +c.t); },
         onCheer: v => { if (room === r) cheerPop(v); },
-        onLeft: () => { if (room !== r) return; if (V && V.ph !== 'over') { BB.toast('あいてが退室しました'); toTitle(); } else { $('btn-again').hidden = true; $('again-msg').textContent = 'あいてが退室しました'; } }
+        onLeft: () => { if (room !== r) return; if (V && V.ph !== 'over') { BB.toast(T('left')); toTitle(); } else { $('btn-again').hidden = true; $('again-msg').textContent = T('left'); } }
       }, want);
       room = r;
       const res = await r.join();
-      if (!res.watching && res.mode === 'normal' && !myTop) { leaveRoom(); throw new Error(NOTOP); }
-      lobby(true); showMode(r); $('wait-msg').textContent = res.watching ? '観戦で入りました。つぎの試合を待っています…' : 'あいてを待っています…';
-    } catch (e) { $('online-err').textContent = e.message || 'つながりませんでした'; leaveRoom(); }
-    $('btn-join').disabled = false; $('btn-join').textContent = 'はいる';
+      if (!res.watching && res.mode === 'normal' && !myTop) { leaveRoom(); throw new Error(NOTOP()); }
+      lobby(true); showMode(r); $('wait-msg').textContent = res.watching ? T('watch_in2') : T('waiting');
+    } catch (e) { $('online-err').textContent = e.message || T('err_conn'); leaveRoom(); }
+    $('btn-join').disabled = false; $('btn-join').textContent = T('join');
   }
-  function showMode(r) { $('wait-code').textContent = r.code + '（' + (r.mode === 'raku' ? 'らくがきバトル' : 'いまのコマで') + '）'; }
+  function showMode(r) { $('wait-code').textContent = T('code_mode', { c: r.code, m: T(r.mode === 'raku' ? 'raku' : 'mode_now') }); }
   // らくがきバトル：60秒で描く → 20秒で設定
   function startDraw(g) {
     for (const o of ['ov-online', 'ov-result', 'ov-reveal', 'ov-vote']) $(o).classList.remove('show');
     endBattle(); stopAttract(); rakuTop = null;
-    if (g.slot < 0) { mode = 'watch'; drawWait(g.setupEnd, 'ふたりがコマを描いています', '描いて、設定したら「せーの」で発表！', true); return; }
-    mode = 'online'; BB.toast('60秒で描こう！ そのあと20秒で設定');
+    if (g.slot < 0) { mode = 'watch'; drawWait(g.setupEnd, T('dw_watch'), T('dw_watch_msg'), true); return; }
+    mode = 'online'; BB.toast(T('draw60'));
     show('editor');
-    const submit = t => { rakuTop = t; t.id = ''; t.name = t.name || g.names[g.slot] || ''; if (room) room.submitDraw(BB.packTop(t, 0.6)); drawWait(g.setupEnd, 'できた！', 'あいてを待っています…', false); };
+    const submit = t => { rakuTop = t; t.id = ''; t.name = t.name || g.names[g.slot] || ''; if (room) room.submitDraw(BB.packTop(t, 0.6)); drawWait(g.setupEnd, T('dw_done'), T('waiting'), false); };
     BB.Editor.open(null, (t, info) => { show('setup'); BB.Setup.open(t, info.an, submit, null, { until: g.setupEnd }); }, { until: g.drawEnd });
   }
   function drawWait(until, title, msg, cheer) {
@@ -615,8 +616,8 @@
     $('ov-drawwait').classList.remove('show'); clearInterval(dwTm);
     const rv = document.querySelector('.reveal'); rv.classList.remove('open');
     for (const i of [0, 1]) { BB.drawTopIcon(ts[i], $('rv' + i)); $('rvn' + i).textContent = nm[i] || '？'; }
-    $('rv-say').textContent = 'せーの…'; $('ov-reveal').classList.add('show'); snd.count();
-    setTimeout(() => { rv.classList.add('open'); $('rv-say').textContent = 'ドン！'; snd.go(); }, 1300);
+    $('rv-say').textContent = T('rv_ready'); $('ov-reveal').classList.add('show'); snd.count();
+    setTimeout(() => { rv.classList.add('open'); $('rv-say').textContent = T('rv_go'); snd.go(); }, 1300);
     setTimeout(() => { $('ov-reveal').classList.remove('show'); after(); }, 3600);
   }
   async function onlineStart(g) {
@@ -649,38 +650,38 @@
   for (const id of ['cheer-bar', 'dw-cheer']) $(id).addEventListener('click', e => { const b = e.target.closest('button'); if (!b || !room) return; const n = performance.now(); if (n - cheerAt < 600) return; cheerAt = n; room.cheer(+b.dataset.e); });
   const cheerLayer = (() => { const d = document.createElement('div'); d.style.cssText = 'position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:30'; document.body.appendChild(d); return d; })();
   function cheerPop(v) { const el = document.createElement('div'); el.className = 'cheer-pop'; el.innerHTML = '<span>' + (CHEER[v.e] || '👏') + '</span><small>' + esc(String(v.n || '').slice(0, 8)) + '</small>'; el.style.left = (8 + Math.random() * 78) + '%'; cheerLayer.appendChild(el); setTimeout(() => el.remove(), 2300); }
-  $('btn-savedraw').onclick = () => { if (rakuTop) openSave(rakuTop, { raku: true, done: () => { $('btn-savedraw').disabled = true; $('btn-savedraw').textContent = '保存しました'; } }); };
+  $('btn-savedraw').onclick = () => { if (rakuTop) openSave(rakuTop, { raku: true, done: () => { $('btn-savedraw').disabled = true; $('btn-savedraw').textContent = T('saved'); } }); };
 
   // ---------- ID ----------
   let saveCtx = null;
   function openSave(t, opt) {
     saveCtx = { t, opt: opt || {} }; BB.drawTopIcon(t, $('sv-prev'));
     $('sv-form').hidden = false; $('sv-done').hidden = true; $('sv-err').textContent = ''; $('sv-author').value = BB.Store.author(); $('sv-pub').checked = false;
-    $('sv-mine-l').hidden = !saveCtx.opt.raku; $('sv-mine').checked = true; $('sv-skip').textContent = saveCtx.opt.raku ? '保存しない' : 'IDなしで使う';
-    $('sv-title').textContent = saveCtx.opt.raku ? '描いたコマを保存' : 'コマにIDをつける'; $('ov-save').classList.add('show');
+    $('sv-mine-l').hidden = !saveCtx.opt.raku; $('sv-mine').checked = true; $('sv-skip').textContent = T(saveCtx.opt.raku ? 'sv_nosave' : 'sv_skip');
+    $('sv-title').textContent = T(saveCtx.opt.raku ? 'sv_title_raku' : 'sv_title'); $('ov-save').classList.add('show');
   }
   function closeSave() { $('ov-save').classList.remove('show'); const c = saveCtx; saveCtx = null; if (c && c.opt.done) c.opt.done(); }
   $('sv-skip').onclick = closeSave; $('sv-close').onclick = closeSave;
   $('sv-ok').onclick = async () => {
     if (!saveCtx) return; const { t, opt } = saveCtx, author = $('sv-author').value.trim().slice(0, 8); BB.Store.setAuthor(author);
-    $('sv-ok').disabled = true; $('sv-ok').textContent = '保存しています…'; $('sv-err').textContent = '';
+    $('sv-ok').disabled = true; $('sv-ok').textContent = T('sv_saving'); $('sv-err').textContent = '';
     try {
       const id = await BB.Store.save(t, { author, pub: $('sv-pub').checked, par: t.par });
-      t.id = id; t.author = author || 'ななし'; delete t.par;
+      t.id = id; t.author = author || T('noname'); delete t.par;
       if (opt.raku && $('sv-mine').checked) { const old = myTop; myTop = BB.cloneTop(t); if (old) BB.freeTop(old); BB.Pool.add(myTop, 'self'); }
       if (myTop && (myTop === t || myTop.id === id)) BB.saveTop(myTop);
       if (mode === 'title') refreshTitle();
       $('sv-id').textContent = id; $('sv-form').hidden = true; $('sv-done').hidden = false;
-    } catch (e) { $('sv-err').textContent = (e && e.message) || '保存できませんでした。通信を確認してね'; }
-    $('sv-ok').disabled = false; $('sv-ok').textContent = '保存してIDをもらう';
+    } catch (e) { $('sv-err').textContent = (e && e.message) || T('sv_fail'); }
+    $('sv-ok').disabled = false; $('sv-ok').textContent = T('sv_ok');
   };
   $('sv-copy').onclick = () => copyText($('sv-id').textContent, $('sv-copy'));
   $('btn-find').onclick = () => {
     $('find-err').textContent = ''; $('in-id').value = ''; const L = BB.Store.mine();
-    $('my-ids').innerHTML = L.length ? '<p>このスマホでつくったコマ</p>' + L.slice(0, 8).map(e => `<button data-id="${e.id}"><span>${esc(e.name || 'なまえなし')}${e.pub ? '（公開）' : ''}</span><b>${e.id}</b></button>`).join('') : '';
+    $('my-ids').innerHTML = L.length ? '<p>' + T('my_ids') + '</p>' + L.slice(0, 8).map(e => `<button data-id="${e.id}"><span>${esc(e.name || T('noname_top'))}${e.pub ? T('pub_mark') : ''}</span><b>${e.id}</b></button>`).join('') : '';
     $('ov-find').classList.add('show'); markGone();
   };
-  async function markGone() { for (const b of $('my-ids').querySelectorAll('button[data-id]')) { if ((await BB.Store.exists(b.dataset.id)) === false) { b.classList.add('gone'); b.querySelector('span').insertAdjacentHTML('beforeend', '<em>（削除ずみ）</em>'); } } }
+  async function markGone() { for (const b of $('my-ids').querySelectorAll('button[data-id]')) { if ((await BB.Store.exists(b.dataset.id)) === false) { b.classList.add('gone'); b.querySelector('span').insertAdjacentHTML('beforeend', '<em>' + T('deleted') + '</em>'); } } }
   $('my-ids').onclick = e => { const b = e.target.closest('button[data-id]'); if (b) { $('in-id').value = b.dataset.id; findGo(); } };
   $('btn-find-close').onclick = () => $('ov-find').classList.remove('show');
   $('in-id').addEventListener('input', () => { const v = BB.cleanId($('in-id').value); if (v !== $('in-id').value) $('in-id').value = v; });
@@ -688,28 +689,28 @@
   $('btn-find-go').onclick = findGo;
   async function findGo() {
     const id = BB.cleanId($('in-id').value);
-    if (!BB.isId(id)) { $('find-err').textContent = 'IDは英数字8文字です'; return; }
+    if (!BB.isId(id)) { $('find-err').textContent = T('id_bad'); return; }
     $('find-err').textContent = ''; $('btn-find-go').disabled = true;
-    try { openChar(await BB.Store.load(id)); } catch (e) { $('find-err').textContent = e.message || '見つかりませんでした'; }
+    try { openChar(await BB.Store.load(id)); } catch (e) { $('find-err').textContent = e.message || T('not_found'); }
     $('btn-find-go').disabled = false;
   }
   let cur = null;
   function openChar(r) {
     if (cur && cur.ch !== myTop) BB.freeTop(cur.ch);
     cur = r; const m = r.meta; BB.drawTopIcon(r.ch, $('cd-prev'));
-    $('cd-name').textContent = m.name || 'なまえなし'; $('cd-meta').textContent = 'ID ' + m.id + '　作：' + (m.author || 'ななし') + '　使われた回数 ' + m.uses + '\n' + BB.T.AXES[r.ch.axis] + '・' + (r.ch.spin === 'L' ? '左回り' : '右回り') + '・スキル「' + SK[r.ch.skill][0] + '」';
-    $('cd-err').textContent = ''; $('cd-keep').disabled = false; $('cd-keep').textContent = 'ライバル帳に入れる';
-    const own = BB.Store.owns(m.id); $('cd-report').hidden = !m.pub || own; $('cd-report').disabled = BB.Store.reported(m.id); $('cd-report').textContent = BB.Store.reported(m.id) ? '通報ずみ' : '通報する'; $('cd-del').hidden = !own; $('cd-del').textContent = 'このコマを消す';
+    $('cd-name').textContent = m.name || T('noname_top'); $('cd-meta').textContent = T('cd_meta', { id: m.id, a: m.author || T('noname'), n: m.uses }) + '\n' + T('cd_meta2', { ax: T('ax_' + r.ch.axis), spin: T(r.ch.spin === 'L' ? 'spin_l0' : 'spin_r0'), sk: T('sk_' + r.ch.skill) });
+    $('cd-err').textContent = ''; $('cd-keep').disabled = false; $('cd-keep').textContent = T('cd_keep');
+    const own = BB.Store.owns(m.id); $('cd-report').hidden = !m.pub || own; $('cd-report').disabled = BB.Store.reported(m.id); $('cd-report').textContent = BB.Store.reported(m.id) ? T('reported') : T('report'); $('cd-del').hidden = !own; $('cd-del').textContent = T('del_top');
     $('ov-char').classList.add('show');
   }
   function closeChar(keep) { $('ov-char').classList.remove('show'); if (!keep && cur && cur.ch !== myTop) BB.freeTop(cur.ch); cur = null; }
   $('cd-close').onclick = () => closeChar();
-  $('cd-use').onclick = () => { if (!cur) return; const old = myTop; myTop = cur.ch; if (old && old !== myTop) BB.freeTop(old); BB.saveTop(myTop); BB.Store.touch(cur.meta.id); closeChar(true); for (const o of ['ov-find', 'ov-gal']) $(o).classList.remove('show'); refreshTitle(); BB.toast('「' + (myTop.name || 'なまえなし') + '」を自分のコマにしました'); };
-  $('cd-lv').onclick = e => { const b = e.target.closest('button[data-level]'); if (!b || !cur) return; if (!myTop) { $('cd-err').textContent = '先に自分のコマをつくるか、「自分のコマにする」をえらんでね'; return; } level = b.dataset.level; const t = cur.ch; BB.Store.touch(cur.meta.id); closeChar(true); for (const o of ['ov-find', 'ov-gal']) $(o).classList.remove('show'); startCpu(t); };
-  $('cd-keep').onclick = () => { if (!cur) return; const ok = BB.Pool.add(cur.ch, 'rival'); $('cd-keep').disabled = true; $('cd-keep').textContent = ok ? 'ライバル帳に入れました' : '保存できませんでした'; };
+  $('cd-use').onclick = () => { if (!cur) return; const old = myTop; myTop = cur.ch; if (old && old !== myTop) BB.freeTop(old); BB.saveTop(myTop); BB.Store.touch(cur.meta.id); closeChar(true); for (const o of ['ov-find', 'ov-gal']) $(o).classList.remove('show'); refreshTitle(); BB.toast(T('use_done', { name: myTop.name || T('noname_top') })); };
+  $('cd-lv').onclick = e => { const b = e.target.closest('button[data-level]'); if (!b || !cur) return; if (!myTop) { $('cd-err').textContent = T('cd_need'); return; } level = b.dataset.level; const t = cur.ch; BB.Store.touch(cur.meta.id); closeChar(true); for (const o of ['ov-find', 'ov-gal']) $(o).classList.remove('show'); startCpu(t); };
+  $('cd-keep').onclick = () => { if (!cur) return; const ok = BB.Pool.add(cur.ch, 'rival'); $('cd-keep').disabled = true; $('cd-keep').textContent = ok ? T('keep_done2') : T('save_fail'); };
   $('cd-copy').onclick = () => cur && copyText(cur.meta.id, $('cd-copy'));
-  $('cd-report').onclick = async () => { const b = $('cd-report'); if (!cur) return; if (!b.dataset.sure) { b.dataset.sure = '1'; b.textContent = 'もう一度押すと通報'; setTimeout(() => { delete b.dataset.sure; if (!b.disabled) b.textContent = '通報する'; }, 3000); return; } delete b.dataset.sure; try { await BB.Store.report(cur.meta.id); b.disabled = true; b.textContent = '通報しました'; } catch (e) { $('cd-err').textContent = '通報できませんでした'; } };
-  $('cd-del').onclick = async () => { const b = $('cd-del'); if (!cur) return; if (!b.dataset.sure) { b.dataset.sure = '1'; b.textContent = 'もう一度押すと消えます'; setTimeout(() => { delete b.dataset.sure; b.textContent = 'このコマを消す'; }, 3000); return; } delete b.dataset.sure; try { const id = cur.meta.id; await BB.Store.remove(id); if (myTop && myTop.id === id) { myTop.id = ''; BB.saveTop(myTop); } closeChar(); $('ov-find').classList.remove('show'); refreshTitle(); BB.toast('コマを消しました'); if ($('ov-gal').classList.contains('show')) galLoad(galSort); } catch (e) { $('cd-err').textContent = e.message || '消せませんでした'; } };
+  $('cd-report').onclick = async () => { const b = $('cd-report'); if (!cur) return; if (!b.dataset.sure) { b.dataset.sure = '1'; b.textContent = T('report_sure'); setTimeout(() => { delete b.dataset.sure; if (!b.disabled) b.textContent = T('report'); }, 3000); return; } delete b.dataset.sure; try { await BB.Store.report(cur.meta.id); b.disabled = true; b.textContent = T('report_done'); } catch (e) { $('cd-err').textContent = T('report_fail'); } };
+  $('cd-del').onclick = async () => { const b = $('cd-del'); if (!cur) return; if (!b.dataset.sure) { b.dataset.sure = '1'; b.textContent = T('del_sure'); setTimeout(() => { delete b.dataset.sure; b.textContent = T('del_top'); }, 3000); return; } delete b.dataset.sure; try { const id = cur.meta.id; await BB.Store.remove(id); if (myTop && myTop.id === id) { myTop.id = ''; BB.saveTop(myTop); } closeChar(); $('ov-find').classList.remove('show'); refreshTitle(); BB.toast(T('del_done')); if ($('ov-gal').classList.contains('show')) galLoad(galSort); } catch (e) { $('cd-err').textContent = e.message || T('del_fail'); } };
   let galSort = 't', galMore = null;
   $('btn-gal').onclick = () => { $('ov-gal').classList.add('show'); galLoad(galSort); };
   $('gal-close').onclick = () => $('ov-gal').classList.remove('show');
@@ -717,14 +718,14 @@
   $('gal-more').onclick = () => galLoad(galSort, true);
   async function galLoad(sort, more) {
     galSort = sort; if (!more) { $('gal-grid').innerHTML = ''; galMore = null; }
-    $('gal-msg').textContent = '読みこんでいます…'; $('gal-more').hidden = true;
+    $('gal-msg').textContent = T('loading'); $('gal-more').hidden = true;
     try {
       const r = await BB.Store.list(sort, more ? galMore : null); if (galSort !== sort) return; galMore = r.more;
-      $('gal-grid').insertAdjacentHTML('beforeend', r.items.map(e => `<button data-id="${e.id}"><img alt="" src="${/^data:image\/(jpeg|png|webp);base64,/.test(e.th) ? e.th : ''}"><b>${esc(e.n || 'なまえなし')}</b><small>作：${esc(e.a || 'ななし')}</small><small>使われた ${e.uses}回</small></button>`).join(''));
-      $('gal-msg').textContent = $('gal-grid').children.length ? '' : 'まだ公開されたコマがありません'; $('gal-more').hidden = !galMore;
-    } catch (e) { $('gal-msg').textContent = e.message || '読みこめませんでした'; }
+      $('gal-grid').insertAdjacentHTML('beforeend', r.items.map(e => `<button data-id="${e.id}"><img alt="" src="${/^data:image\/(jpeg|png|webp);base64,/.test(e.th) ? e.th : ''}"><b>${esc(e.n || T('noname_top'))}</b><small>${T('by', { a: esc(e.a || T('noname')) })}</small><small>${T('uses', { n: e.uses })}</small></button>`).join(''));
+      $('gal-msg').textContent = $('gal-grid').children.length ? '' : T('gal_empty'); $('gal-more').hidden = !galMore;
+    } catch (e) { $('gal-msg').textContent = e.message || T('load_fail'); }
   }
-  $('gal-grid').onclick = async e => { const b = e.target.closest('button[data-id]'); if (!b || b.disabled) return; b.disabled = true; try { openChar(await BB.Store.load(b.dataset.id)); } catch (er) { $('gal-msg').textContent = er.message || '読みこめませんでした'; } b.disabled = false; };
+  $('gal-grid').onclick = async e => { const b = e.target.closest('button[data-id]'); if (!b || b.disabled) return; b.disabled = true; try { openChar(await BB.Store.load(b.dataset.id)); } catch (er) { $('gal-msg').textContent = er.message || T('load_fail'); } b.disabled = false; };
 
   try { const rc = new URLSearchParams(location.search).get('room'); if (rc) setTimeout(() => openOnline(BB.cleanCode(rc)), 300); } catch (e) {}
   BB._debug = { get M() { return M; }, get V() { return V; }, get mode() { return mode; }, get mine() { return mine; }, get room() { return room; }, get myTop() { return myTop; }, set myTop(t) { myTop = t; refreshTitle(); }, startCpu: (lv, t) => { level = lv || level; return startCpu(t); }, R, makeTop, get tops() { return tops; } };

@@ -5,7 +5,8 @@
 (function () {
   const { D, C, R_PX, HUB_PX, COLORS, MIN_FILL } = BB.T;
   const $ = id => document.getElementById(id);
-  const STAMPS = [['star', '⭐ 星'], ['heart', '❤ ハート'], ['bolt', '⚡ いなずま'], ['eyes', '👀 目'], ['tsuri', '😠 つり目'], ['kiba', '🦷 キバ'], ['flame', '🔥 ほのお'], ['dot', '● 丸']];
+  const tr = (k, v) => (window.I18N ? I18N.t(k, v) : k);
+  const STAMPS = ['star', 'heart', 'bolt', 'eyes', 'tsuri', 'kiba', 'flame', 'dot'].map(k => [k, 'st_' + k]);
   const SYMS = [1, 2, 3, 4, 6];
   const cv = $('ed-canvas'), g = cv.getContext('2d');
   let top = null, tool = 'pen', color = COLORS[2], size = 10, dpr = 1, sym = 1, shape = 'circle', shapeFill = true, stamp = 'star';
@@ -49,7 +50,7 @@
     an = BB.analyze(top);
     const el = $('ed-fill'), pct = Math.round(an.fill * 100);
     el.style.width = Math.min(100, pct) + '%'; el.classList.toggle('ok', an.ok);
-    $('ed-fill-t').textContent = 'ぬり ' + pct + '%' + (an.ok ? '　OK' : '（' + Math.round(MIN_FILL * 100) + '%で完成）');
+    $('ed-fill-t').textContent = tr('fill_pct', { p: pct }) + (an.ok ? tr('fill_ok') : tr('fill_need', { m: Math.round(MIN_FILL * 100) }));
     // つながっていない所の印
     if (an.loose > 0.004) {
       const s = document.createElement('canvas'); s.width = s.height = 96; const x = s.getContext('2d', { willReadFrequently: true }); x.drawImage(top.layer, 0, 0, 96, 96);
@@ -62,8 +63,8 @@
   }
   function sub() {
     const el = $('ed-sub');
-    if (tool === 'shape') el.innerHTML = [['line', '／ 直線'], ['circle', '○ 丸'], ['rect', '□ 四角'], ['tri', '△ 三角']].map(([k, t]) => `<button data-shape="${k}" class="${shape === k ? 'on' : ''}">${t}</button>`).join('') + `<button data-sfill="1" class="${shapeFill ? 'on' : ''}">中もぬる</button>`;
-    else if (tool === 'stamp') el.innerHTML = STAMPS.map(([k, t]) => `<button data-stamp="${k}" class="${stamp === k ? 'on' : ''}">${t}</button>`).join('');
+    if (tool === 'shape') el.innerHTML = ['line', 'circle', 'rect', 'tri'].map(k => `<button data-shape="${k}" class="${shape === k ? 'on' : ''}">${tr('sh_' + k)}</button>`).join('') + `<button data-sfill="1" class="${shapeFill ? 'on' : ''}">${tr('sh_fill')}</button>`;
+    else if (tool === 'stamp') el.innerHTML = STAMPS.map(([k, t]) => `<button data-stamp="${k}" class="${stamp === k ? 'on' : ''}">${tr(t)}</button>`).join('');
     else el.innerHTML = '';
   }
   function hud() {
@@ -73,7 +74,7 @@
     const cb = $('ed-color-free'); cb.classList.toggle('on', !COLORS.includes(color)); if (!COLORS.includes(color)) cb.style.background = color;
     $('ed-size').value = size; $('ed-size-n').textContent = size; $('ed-size-dot').style.width = $('ed-size-dot').style.height = Math.max(3, Math.min(28, size * z)) + 'px'; $('ed-size-dot').style.background = tool === 'erase' ? '#fff' : color;
     $('ed-undo').disabled = !undo.length;
-    $('ed-sym').classList.toggle('on', sym > 1); $('ed-sym-t').textContent = sym > 1 ? sym + '回対称' : '対称なし';
+    $('ed-sym').classList.toggle('on', sym > 1); $('ed-sym-t').textContent = sym > 1 ? tr('sym_n', { n: sym }) : tr('sym_off');
   }
   $('ed-sub').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.shape) shape = b.dataset.shape; if (b.dataset.sfill) shapeFill = !shapeFill; if (b.dataset.stamp) stamp = b.dataset.stamp; draw(); });
 
@@ -174,7 +175,7 @@
 
   // ---------- ボタン ----------
   document.querySelectorAll('#ed-tools button[data-tool]').forEach(b => b.onclick = () => { tool = b.dataset.tool; draw(); });
-  $('ed-sym').onclick = () => { sym = SYMS[(SYMS.indexOf(sym) + 1) % SYMS.length]; EK_toast(sym > 1 ? sym + '回対称：描いたものが' + sym + 'つにふえる' : '対称なし'); draw(); };
+  $('ed-sym').onclick = () => { sym = SYMS[(SYMS.indexOf(sym) + 1) % SYMS.length]; EK_toast(sym > 1 ? tr('sym_toast', { n: sym }) : tr('sym_off')); draw(); };
   function closePops() { $('ed-menu').hidden = true; $('ed-size-pop').hidden = true; }
   $('ed-more').onclick = e => { e.stopPropagation(); const h = $('ed-menu').hidden; closePops(); $('ed-menu').hidden = !h; };
   $('ed-menu').addEventListener('click', () => setTimeout(closePops, 0));
@@ -193,7 +194,7 @@
   };
   function finish(force) {
     analyze();
-    if (!an.ok && !force) { EK_toast('もう少しぬってね（円の' + Math.round(MIN_FILL * 100) + '%以上・真ん中とつながった所）'); return; }
+    if (!an.ok && !force) { EK_toast(tr('fill_more', { m: Math.round(MIN_FILL * 100) })); return; }
     const r = raku; endRaku();
     if (onDone) onDone(top, { dirty, an, raku: !!r });
   }

@@ -153,20 +153,20 @@ BB.rand = BB.rand || (() => Math.random());   // 試合の計算で使う乱数�
   BB.samples = function (only) {
     const out = {};
     if (!only || only === 'easy') {           // まるい持久型
-      const t = BB.newTop(); t.name = 'まるもち'; t.pts = { atk: 1, def: 3, sta: 5, wgt: 1 }; t.axis = 'sta'; t.lock = 0.4; t.skill = 'heal';
+      const t = BB.newTop(); t.name = I18N.t('smp_easy'); t.pts = { atk: 1, def: 3, sta: 5, wgt: 1 }; t.axis = 'sta'; t.lock = 0.4; t.skill = 'heal';
       paint(t, x => { x.fillStyle = '#7dd3fc'; x.strokeStyle = INK; x.lineWidth = 8; x.beginPath(); x.arc(0, 0, 175, 0, 7); x.fill(); x.stroke();
         x.fillStyle = '#e0f2fe'; for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; x.beginPath(); x.arc(Math.cos(a) * 112, Math.sin(a) * 112, 34, 0, 7); x.fill(); x.stroke(); } });
       out.easy = t;
     }
     if (!only || only === 'normal') {         // 三つ羽のバランス型
-      const t = BB.newTop(); t.name = 'ミツバ'; t.pts = { atk: 3, def: 2, sta: 3, wgt: 2 }; t.axis = 'bal'; t.lock = 0.55; t.skill = 'loose'; t.spin = 'R';
+      const t = BB.newTop(); t.name = I18N.t('smp_normal'); t.pts = { atk: 3, def: 2, sta: 3, wgt: 2 }; t.axis = 'bal'; t.lock = 0.55; t.skill = 'loose'; t.spin = 'R';
       paint(t, x => { x.fillStyle = '#22c55e'; x.strokeStyle = INK; x.lineWidth = 8;
         for (let i = 0; i < 3; i++) { x.save(); x.rotate(i * Math.PI * 2 / 3); x.beginPath(); x.moveTo(-40, -30); x.quadraticCurveTo(80, -190, 195, -30); x.quadraticCurveTo(120, 40, 30, 40); x.closePath(); x.fill(); x.stroke(); x.restore(); }
         x.fillStyle = '#f5b800'; x.beginPath(); x.arc(0, 0, 80, 0, 7); x.fill(); x.stroke(); });
       out.normal = t;
     }
     if (!only || only === 'hard') {           // とげとげ攻撃型
-      const t = BB.newTop(); t.name = 'ギザリュウ'; t.pts = { atk: 5, def: 1, sta: 1, wgt: 3 }; t.axis = 'atk'; t.lock = 0.7; t.skill = 'rush'; t.spin = 'R';
+      const t = BB.newTop(); t.name = I18N.t('smp_hard'); t.pts = { atk: 5, def: 1, sta: 1, wgt: 3 }; t.axis = 'atk'; t.lock = 0.7; t.skill = 'rush'; t.spin = 'R';
       paint(t, x => { x.fillStyle = '#ef4444'; x.strokeStyle = INK; x.lineWidth = 8; star(x, 6, 205, 120, 0.2); x.fill(); x.stroke();
         x.fillStyle = '#1f2430'; star(x, 6, 120, 70, 0.2 + Math.PI / 6); x.fill(); x.fillStyle = '#f97316'; x.beginPath(); x.arc(0, 0, 58, 0, 7); x.fill(); x.stroke(); });
       out.hard = t;

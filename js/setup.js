@@ -5,7 +5,8 @@
 (function () {
   const $ = id => document.getElementById(id);
   const T = BB.T;
-  const PT = [['atk', '攻撃', '#ff4d5e'], ['def', '防御', '#33c7ff'], ['sta', '持久', '#2fd27c'], ['wgt', '重さ', '#ffb020']];
+  const tr = (k, v) => (window.I18N ? I18N.t(k, v) : k);
+  const PT = [['atk', 'pt_atk', '#ff4d5e'], ['def', 'pt_def', '#33c7ff'], ['sta', 'pt_sta', '#2fd27c'], ['wgt', 'pt_wgt', '#ffb020']];
   let top = null, an = null, done = null, back = null, raku = null;
 
   // 円盤の小さい絵（軸つき）
@@ -23,14 +24,14 @@
   function render() {
     BB.drawTopIcon(top, $('su-prev'));
     const left = BB.ptsLeft(top); $('su-left').textContent = left;
-    $('su-pts').innerHTML = PT.map(([k, n, c]) => `<div class="pt" style="--c:${c}"><span>${n}</span><button data-k="${k}" data-d="-1">－</button><div class="bar">${Array.from({ length: T.PMAX }, (_, i) => `<i class="${i < top.pts[k] ? 'on' : ''}"></i>`).join('')}</div><button data-k="${k}" data-d="1"${left <= 0 || top.pts[k] >= T.PMAX ? ' disabled' : ''}>＋</button></div>`).join('');
-    $('su-axis').innerHTML = Object.keys(T.AXES).map(k => `<button data-v="${k}" class="${top.axis === k ? 'on' : ''}">${T.AXES[k]}<small>${T.AXIS_TIP[k]}</small></button>`).join('');
+    $('su-pts').innerHTML = PT.map(([k, n, c]) => `<div class="pt" style="--c:${c}"><span>${tr(n)}</span><button data-k="${k}" data-d="-1">－</button><div class="bar">${Array.from({ length: T.PMAX }, (_, i) => `<i class="${i < top.pts[k] ? 'on' : ''}"></i>`).join('')}</div><button data-k="${k}" data-d="1"${left <= 0 || top.pts[k] >= T.PMAX ? ' disabled' : ''}>＋</button></div>`).join('');
+    $('su-axis').innerHTML = Object.keys(T.AXES).map(k => `<button data-v="${k}" class="${top.axis === k ? 'on' : ''}">${tr('ax_' + k)}<small>${tr('axd_' + k)}</small></button>`).join('');
     document.querySelectorAll('#su-spin button').forEach(b => b.classList.toggle('on', b.dataset.v === top.spin));
     $('su-lock').value = Math.round(top.lock * 100);
-    $('su-skill').innerHTML = Object.keys(T.SKILLS).map(k => `<button data-v="${k}" class="${top.skill === k ? 'on' : ''}"><b>${T.SKILLS[k][0]}</b><small>${T.SKILLS[k][1]}</small></button>`).join('');
+    $('su-skill').innerHTML = Object.keys(T.SKILLS).map(k => `<button data-v="${k}" class="${top.skill === k ? 'on' : ''}"><b>${tr('sk_' + k)}</b><small>${tr('skd_' + k)}</small></button>`).join('');
     // 形のとくちょう（ことばで）
     const sp = an.spike, sz = an.size;
-    $('su-shape').textContent = '形：' + (sp > 0.55 ? 'とげとげ（攻撃むき・回転は落ちやすい）' : sp > 0.28 ? 'でこぼこ（バランス）' : 'まるい（防御・持久むき）') + (sz < 0.6 ? '／小さめ' : sz > 0.92 ? '／大きめ' : '');
+    $('su-shape').textContent = tr('shape_l') + tr(sp > 0.55 ? 'sh_spiky' : sp > 0.28 ? 'sh_bumpy' : 'sh_round') + (sz < 0.6 ? tr('sh_small') : sz > 0.92 ? tr('sh_big') : '');
   }
   $('su-pts').addEventListener('click', e => {
     const b = e.target.closest('button[data-k]'); if (!b || !top) return;
